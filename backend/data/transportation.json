@@ -1,0 +1,122 @@
+[
+  {
+    "date": "2025-05-01",
+    "bike": 170,
+    "motorbike": 403,
+    "car": 269
+  },
+  {
+    "date": "2025-05-08",
+    "bike": 109,
+    "motorbike": 400,
+    "car": 328
+  },
+  {
+    "date": "2025-05-15",
+    "bike": 192,
+    "motorbike": 406,
+    "car": 345
+  },
+  {
+    "date": "2025-05-22",
+    "bike": 186,
+    "motorbike": 444,
+    "car": 258
+  },
+  {
+    "date": "2025-05-29",
+    "bike": 175,
+    "motorbike": 475,
+    "car": 318
+  },
+  {
+    "date": "2025-06-05",
+    "bike": 137,
+    "motorbike": 290,
+    "car": 169
+  },
+  {
+    "date": "2025-06-12",
+    "bike": 101,
+    "motorbike": 433,
+    "car": 147
+  },
+  {
+    "date": "2025-06-19",
+    "bike": 103,
+    "motorbike": 412,
+    "car": 340
+  },
+  {
+    "date": "2025-06-26",
+    "bike": 96,
+    "motorbike": 358,
+    "car": 157
+  },
+  {
+    "date": "2025-07-03",
+    "bike": 83,
+    "motorbike": 430,
+    "car": 290
+  },
+  {
+    "date": "2025-07-10",
+    "bike": 159,
+    "motorbike": 354,
+    "car": 236
+  },
+  {
+    "date": "2025-07-17",
+    "bike": 92,
+    "motorbike": 324,
+    "car": 206
+  },
+  {
+    "date": "2025-07-24",
+    "bike": 162,
+    "motorbike": 421,
+    "car": 203
+  },
+  {
+    "date": "2025-07-31",
+    "bike": 101,
+    "motorbike": 383,
+    "car": 210
+  },
+  {
+    "date": "2025-08-07",
+    "bike": 123,
+    "motorbike": 424,
+    "car": 342
+  },
+  {
+    "date": "2025-08-14",
+    "bike": 190,
+    "motorbike": 403,
+    "car": 344
+  },
+  {
+    "date": "2025-08-21",
+    "bike": 105,
+    "motorbike": 392,
+    "car": 338
+  },
+  {
+    "date": "2025-08-28",
+    "bike": 110,
+    "motorbike": 285,
+    "car": 174
+  },
+  {
+    "date": "2025-09-04",
+    "bike": 166,
+    "motorbike": 331,
+    "car": 338
+  },
+  {
+    "date": "2025-09-11",
+    "bike": 172,
+    "motorbike": 368,
+    "car": 142
+  }
+]
