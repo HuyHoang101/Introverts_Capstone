@@ -20,7 +20,7 @@ export default function HomeLayout() {
         options={{ title: "Population Detail" }}
       />
       <Stack.Screen
-        name="TrasportationDetail"
+        name="TransportationDetail"
         options={{ title: "Transportation Detail" }}
       />
       <Stack.Screen
