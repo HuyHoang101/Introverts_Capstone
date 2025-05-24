@@ -18,6 +18,20 @@ app.use('/api/air', airRouter);
 app.use('/api/transportation', transportationRouter);
 app.use('/api/electric', electricRouter);
 
+let reports = [];
+// Nhận report từ frontend
+app.post('/api/report', (req, res) => {
+  const report = req.body;
+  reports.push(report); // lưu vào RAM
+  console.log('Received report:', report);
+  res.status(200).json({ message: 'Report saved temporarily in memory' });
+});
+
+// Trả danh sách tất cả report
+app.get('/api/report', (req, res) => {
+  res.status(200).json(reports);
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
   console.log(`It combine:`);
