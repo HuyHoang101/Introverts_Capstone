@@ -21,7 +21,7 @@ export default function WaterDetail() {
   const currentData = data.slice(startIndex, endIndex);
 
   useEffect(() => {
-    fetch("http://192.168.0.112:5000/api/water")
+    fetch("http://192.168.0.103:5000/api/water")
       .then((res) => res.json())
       .then((json) => setData(json))
       .catch((err) => console.error("API error:", err));

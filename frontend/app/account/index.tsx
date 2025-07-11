@@ -8,13 +8,14 @@ export default function Index() {
   const { username, avatar } = useUser(); // 👈 Lấy data từ Context
 
   return (
-    <ScrollView className="flex-1 bg-white">
+    <ScrollView className="flex-col bg-white">
       {/* Header: Avatar + Name + UID */}
-      <View className="items-center mt-10">
+      <View className="items-center mt-20">
         {/* Avatar */}
         <Image
           source={{ uri: avatar }}
-          className="w-24 h-24 rounded-full"
+          className="rounded-full"
+          style={{height:136, width: 136}}
         />
         {/* User Info */}
         <View className="mt-4 items-center">
@@ -24,7 +25,7 @@ export default function Index() {
       </View>
 
       {/* Account Options */}
-      <View className="mt-10 px-6 space-y-5">
+      <View className="mt-10 px-4">
         <AccountItem
           icon={<Feather name="user" size={24} color="#333" />}
           label="Profile"
@@ -75,7 +76,7 @@ function AccountItem({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-xl"
+      className="flex-row items-center justify-between bg-gray-100 px-4 py-6 rounded-xl mb-4"
     >
       <View className="flex-row items-center space-x-4">
         {icon}

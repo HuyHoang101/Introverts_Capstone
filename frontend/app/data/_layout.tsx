@@ -5,11 +5,7 @@ export default function HomeLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: "Account Info"}}
-      />
-      <Stack.Screen
-        name="LinkAccount"
-        options={{ title: "Link Account"}}
+        options={{ title: "Sustainability Data" }}
       />
     </Stack>
   );
