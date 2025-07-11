@@ -41,3 +41,6 @@ app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/api/transportation`);
   console.log(`Server running at http://localhost:${port}/api/electric`);
 });
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
