@@ -5,7 +5,7 @@ export default function HomeLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: "Profile" }}
+        options={{ title: "Account Info", headerShown: false }}
       />
     </Stack>
   );
