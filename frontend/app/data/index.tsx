@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import ProgressBar from '@/component/ProgressBar';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import * as Progress from 'react-native-progress';
+import { useRouter } from 'expo-router';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -52,6 +53,8 @@ const chartConfig = {
   const percent = 0.73;
 
 export default function Index() {
+  const router = useRouter(); // Initialize the router
+
     return (<>
         <ImageBackground
           source={require('../../assets/images/bg_main.png')}
@@ -65,7 +68,7 @@ export default function Index() {
         >
     
           {/* ✅ Header */}
-          <View className="flex-row justify-between items-center mt-10 w-full px-4 ">
+          <View className="flex-row justify-between items-center mt-12 w-full px-4 ">
             <Text className="font-bold text-5xl text-white">Sustainability Data</Text>
           </View>
           <View className="flex-row justify-between items-center mt-4 w-full px-4 ">
@@ -182,7 +185,7 @@ export default function Index() {
           <View className='flex-col justify-center items-center bg-white rounded-lg shadow-md border border-gray-200 p-2 m-2 max-w-full'>
             <View className="flex-row justify-between items-center mb-4 w-full">
               <Text className='text-lg font-bold'>Danger Score</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/home/AirDetail')} >
                 <Text className="text-sm font-semibold">See more →</Text>
               </TouchableOpacity>
             </View>

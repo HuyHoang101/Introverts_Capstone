@@ -10,7 +10,7 @@ export default function HomeScreen() {
       resizeMode="stretch"
     >
     <ScrollView
-      className="flex-1 mt-5"
+      className="flex-1 mt-10"
       contentContainerStyle={{ padding: 16 }}
       showsVerticalScrollIndicator={false}
     >
