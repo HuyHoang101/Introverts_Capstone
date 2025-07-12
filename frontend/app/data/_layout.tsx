@@ -5,7 +5,9 @@ export default function HomeLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: "Sustainability Data" }}
+        options={{
+          headerShown: false, 
+        }}
       />
     </Stack>
   );

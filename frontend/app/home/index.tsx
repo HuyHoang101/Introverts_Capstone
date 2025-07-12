@@ -1,10 +1,16 @@
-import { View, Text, ScrollView, Pressable, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Pressable, Image, TouchableOpacity, ImageBackground } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   return (
+    <>
+    <ImageBackground
+      source={require('../../assets/images/bg_main.png')}
+      className="flex-1"
+      resizeMode="stretch"
+    >
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 mt-5"
       contentContainerStyle={{ padding: 16 }}
       showsVerticalScrollIndicator={false}
     >
@@ -12,7 +18,7 @@ export default function HomeScreen() {
       <View className="flex-row justify-between items-center mb-14">
         <View className='flex flex-row items-center'>
           <Image source={require('../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
-          <Text className='font-extrabold text-5xl'>GreenSync</Text>
+          <Text className='font-extrabold text-5xl text-white'>GreenSync</Text>
         </View>
         <Feather name="bell" size={36} color="#333" />
         <View className='flex bg-red-500 absolute right-0 top-0 w-4 h-4 rounded-full items-center justify-center'>
@@ -72,5 +78,7 @@ export default function HomeScreen() {
         </View>
       </View>
     </ScrollView>
+    </ImageBackground>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, ScrollView, ImageBackground } from 'react-native';
 import { useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import ProgressBar from '@/component/ProgressBar';
@@ -52,20 +52,27 @@ const chartConfig = {
   const percent = 0.73;
 
 export default function Index() {
-    return (
-        // ✅ Outer scroll container (vertical)
+    return (<>
+        <ImageBackground
+          source={require('../../assets/images/bg_main.png')}
+          className="flex-1"
+          resizeMode="stretch"
+        >
         <ScrollView
-          className="flex-1 bg-white"
+          className="flex-1 "
           contentContainerStyle={{ paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
         >
     
           {/* ✅ Header */}
-          <View className="flex-row justify-between items-center mt-4 w-full px-4">
-            <Text className="font-semibold text-xl">Last Month Amount</Text>
+          <View className="flex-row justify-between items-center mt-10 w-full px-4 ">
+            <Text className="font-bold text-5xl text-white">Sustainability Data</Text>
+          </View>
+          <View className="flex-row justify-between items-center mt-4 w-full px-4 ">
+            <Text className="font-bold text-3xl text-white">Last Month Amount</Text>
             <TouchableOpacity className="flex-row items-center">
               <MaterialIcons name="emoji-objects" size={24} color={'#dde511'} />
-              <Text>AI insight →</Text>
+              <Text className='text-white font-semibold text-xl'>AI insight →</Text>
             </TouchableOpacity>
           </View>
     
@@ -111,7 +118,8 @@ export default function Index() {
           </View>
     
           {/* ✅ Monthly Water Usage Chart */}
-          <View className="p-2 bg-white rounded-xl shadow mt-6 border border-gray-200 mx-2">
+          <Text className="text-3xl font-bold text-white p-4">Monthly Water Usage</Text>
+          <View className="p-2 bg-white rounded-xl shadow mt-3 border border-gray-200 mx-2">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-gray-800">💧 Monthly Water Usage</Text>
               <TouchableOpacity>
@@ -137,7 +145,8 @@ export default function Index() {
           </View>
     
           {/* ✅ Monthly Electric Usage Line Chart */}
-          <View className="p-2 bg-white rounded-xl shadow mt-6 border border-gray-200 mx-2">
+          <Text className="text-3xl font-bold text-white p-4">Monthly Electric Usage</Text>
+          <View className="p-2 bg-white rounded-xl shadow mt-3 border border-gray-200 mx-2">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-gray-800">⚡️ Monthly Electric Consumption</Text>
               <TouchableOpacity>
@@ -169,7 +178,7 @@ export default function Index() {
           </View>
 
           {/* ✅ Daily Danger score of Air quality */}
-          <Text className="font-semibold text-xl mt-6 ml-2">Daily Air Quality</Text>
+          <Text className="text-3xl font-bold text-white p-4">Air Quality</Text>
           <View className='flex-col justify-center items-center bg-white rounded-lg shadow-md border border-gray-200 p-2 m-2 max-w-full'>
             <View className="flex-row justify-between items-center mb-4 w-full">
               <Text className='text-lg font-bold'>Danger Score</Text>
@@ -215,5 +224,7 @@ export default function Index() {
             </View>
           </View>
         </ScrollView>
+        </ImageBackground>
+        </>
       );
 }

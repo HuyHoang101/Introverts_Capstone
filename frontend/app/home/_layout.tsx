@@ -18,13 +18,7 @@ export default function HomeLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Dashboard",
-          headerTitle: () => (
-            <HeaderWithIcon
-              icon={<Feather name="home" size={20} color="#333" />}
-              label="Dashboard"
-            />
-          ),
+          headerShown: false
         }}
       />
 
