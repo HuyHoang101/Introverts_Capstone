@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Text, View, FlatList, TouchableOpacity } from "react-native";
 import "@/global.css";
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+import "@/global.css";
+
 type WaterData = {
   date: string;
   liters: number;
@@ -21,7 +24,7 @@ export default function WaterDetail() {
   const currentData = data.slice(startIndex, endIndex);
 
   useEffect(() => {
-    fetch("http://192.168.0.103:5000/api/water")
+    fetch(`${API_BASE_URL}/api/water`)
       .then((res) => res.json())
       .then((json) => setData(json))
       .catch((err) => console.error("API error:", err));

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Text, View, FlatList, TouchableOpacity } from "react-native";
 import "@/global.css";
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 type AirData = {
   date: string;
   temperature: number;
@@ -22,7 +24,7 @@ export default function AirDetail() {
   const currentData = data.slice(startIndex, endIndex);
 
   useEffect(() => {
-    fetch("http://192.168.0.103:5000/api/air")
+    fetch(`${API_BASE_URL}/api/air`)
       .then((res) => res.json())
       .then((json) => setData(json))
       .catch((err) => console.error("API error:", err));
