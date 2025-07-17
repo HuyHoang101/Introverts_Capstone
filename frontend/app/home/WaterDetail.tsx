@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, FlatList, TouchableOpacity } from "react-native";
+import { Text, View, FlatList, TouchableOpacity, ScrollView, ImageBackground } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import "@/global.css";
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 type WaterData = {
   date: string;
@@ -14,61 +18,173 @@ export default function WaterDetail() {
   const [page, setPage] = useState(1);
   const [isPressed, setIsPressed] = useState(false);
   const [isPressed1, setIsPressed1] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentData = data.slice(startIndex, endIndex);
 
+  // Calculate statistics
+  const totalConsumption = data.reduce((sum, item) => sum + item.liters, 0);
+  const averageConsumption = data.length > 0 ? totalConsumption / data.length : 0;
+  const maxConsumption = data.length > 0 ? Math.max(...data.map(item => item.liters)) : 0;
+
   useEffect(() => {
-    fetch("http://192.168.0.103:5000/api/water")
+    setLoading(true);
+    fetch(`${API_BASE_URL}/api/water`)
       .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("API error:", err));
+      .then((json) => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("API error:", err);
+        setLoading(false);
+      });
   }, []);
 
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(num);
+  };
+
   return (
-    <View className="flex-1 items-center justify-center bg-white px-4 w-full">
-      <Text className="text-xl font-bold mb-4 mt-4">Water Data</Text>
-      <FlatList
-        className="w-full"
-        data={currentData}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View className="p-4 border-b border-gray-200 w-full flex-row items-center justify-between">
-            <Text className="text-base italic text-gray-400">{item.date}</Text>
-            <View className="p-4">
-              <Text className="text-base">💧 Liters:    {item.liters} liters</Text>
+    <ImageBackground
+      source={require('../../assets/images/bg_main.png')}
+      className="flex-1"
+      resizeMode="stretch"
+    >
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 pt-12 pb-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="p-2 rounded-full bg-white/20"
+          >
+            <MaterialIcons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-2xl font-bold text-white">Water Usage Details</Text>
+          <View className="w-10" />
+        </View>
+
+        {/* Statistics Cards */}
+        <View className="px-4 mb-6">
+          <View className="flex-row justify-between space-x-3">
+            <View className="flex-1 bg-white/90 rounded-xl p-4 shadow-lg">
+              <View className="flex-row items-center">
+                <MaterialIcons name="water-drop" size={20} color="#3b82f6" />
+                <Text className="text-sm font-semibold text-gray-600 ml-2">Total</Text>
+              </View>
+              <Text className="text-2xl font-bold text-gray-800 mt-1">
+                {formatNumber(totalConsumption)}
+              </Text>
+              <Text className="text-xs text-gray-500">kL</Text>
+            </View>
+            
+            <View className="flex-1 bg-white/90 rounded-xl p-4 shadow-lg">
+              <View className="flex-row items-center">
+                <MaterialIcons name="trending-up" size={20} color="#10b981" />
+                <Text className="text-sm font-semibold text-gray-600 ml-2">Average</Text>
+              </View>
+              <Text className="text-2xl font-bold text-gray-800 mt-1">
+                {formatNumber(averageConsumption)}
+              </Text>
+              <Text className="text-xs text-gray-500">kL/day</Text>
+            </View>
+            
+            <View className="flex-1 bg-white/90 rounded-xl p-4 shadow-lg">
+              <View className="flex-row items-center">
+                <MaterialIcons name="warning" size={20} color="#f59e0b" />
+                <Text className="text-sm font-semibold text-gray-600 ml-2">Peak</Text>
+              </View>
+              <Text className="text-2xl font-bold text-gray-800 mt-1">
+                {formatNumber(maxConsumption)}
+              </Text>
+              <Text className="text-xs text-gray-500">kL</Text>
             </View>
           </View>
+        </View>
+
+        {/* Data List */}
+        <View className="bg-white/95 mx-4 rounded-xl shadow-lg">
+          <View className="p-4 border-b border-gray-200">
+            <Text className="text-lg font-bold text-gray-800">Daily Usage Records</Text>
+            <Text className="text-sm text-gray-600">
+              Showing {currentData.length} of {data.length} records
+            </Text>
+          </View>
+          
+          {loading ? (
+            <View className="p-8 items-center">
+              <Text className="text-gray-500">Loading...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={currentData}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View className="p-4 border-b border-gray-100 flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-gray-800">{item.date}</Text>
+                    <Text className="text-sm text-gray-500">Daily consumption</Text>
+                  </View>
+                  <View className="flex-row items-center">
+                    <MaterialIcons name="water-drop" size={16} color="#3b82f6" />
+                    <Text className="text-lg font-bold text-gray-800 ml-2">
+                      {formatNumber(item.liters)}
+                    </Text>
+                    <Text className="text-sm text-gray-500 ml-1">kL</Text>
+                  </View>
+                </View>
+              )}
+              scrollEnabled={false}
+            />
+          )}
+        </View>
+
+        {/* Pagination Controls */}
+        {!loading && data.length > 0 && (
+          <View className="flex-row justify-center items-center mt-6 px-4">
+            <TouchableOpacity
+              onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
+              onPressIn={() => setIsPressed(true)}
+              onPressOut={() => setIsPressed(false)}
+              disabled={page === 1}
+              className={`px-4 py-2 rounded-lg mr-4 ${
+                page === 1 ? 'bg-gray-300' : isPressed ? 'bg-blue-600' : 'bg-blue-500'
+              }`}
+            >
+              <Text className={`font-semibold ${page === 1 ? 'text-gray-500' : 'text-white'}`}>
+                Previous
+              </Text>
+            </TouchableOpacity>
+
+            <View className="bg-white/90 px-4 py-2 rounded-lg">
+              <Text className="text-base font-semibold text-gray-800">
+                {page} of {totalPages}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              onPressIn={() => setIsPressed1(true)}
+              onPressOut={() => setIsPressed1(false)}
+              disabled={page === totalPages}
+              className={`px-4 py-2 rounded-lg ml-4 ${
+                page === totalPages ? 'bg-gray-300' : isPressed1 ? 'bg-blue-600' : 'bg-blue-500'
+              }`}
+            >
+              <Text className={`font-semibold ${page === totalPages ? 'text-gray-500' : 'text-white'}`}>
+                Next
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
-      />
-      {/* Pagination Controls */}
-      <View className="flex-row justify-between mt-4 px-4 space-x-2 mb-4">
-        <TouchableOpacity
-          onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
-          onPressIn={() => setIsPressed(true)}
-          onPressOut={() => setIsPressed(false)}
-          disabled={page === 1}
-          className={`px-4 py-2 rounded-sm ${isPressed ? 'bg-gray-400' : 'bg-transparent'}`}
-        >
-          <Text className={`${page === 1 ? "opacity-0" : ""}`}>{'<'}</Text>
-        </TouchableOpacity>
-
-        <Text className="text-lg self-center">
-          Page {page} / {totalPages}
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          onPressIn={() => setIsPressed1(true)}
-          onPressOut={() => setIsPressed1(false)}
-          disabled={page === totalPages}
-          className={`px-4 py-2 rounded-sm ${isPressed1 ? "bg-gray-400" : "bg-transparent"}`}
-        >
-          <Text className={`${page === totalPages ? "opacity-0" : ""}`}>{'>'}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </ScrollView>
+    </ImageBackground>
   );
 }

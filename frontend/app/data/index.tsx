@@ -53,9 +53,17 @@ const chartConfig = {
   const percent = 0.73;
 
 export default function Index() {
-  const router = useRouter(); // Initialize the router
+  const router = useRouter();
 
-    return (<>
+  const handleWaterCardPress = () => {
+    router.push('/home/WaterDetail');
+  };
+
+  const handleElectricCardPress = () => {
+    router.push('/home/ElectricDetail');
+  };
+
+  return (<>
         <ImageBackground
           source={require('../../assets/images/bg_main.png')}
           className="flex-1"
@@ -82,7 +90,10 @@ export default function Index() {
           {/* ✅ Water & Electric Summary Cards */}
           <View className="flex-row justify-between items-center w-full px-2 mt-4">
             {/* Water Card */}
-            <View className="flex-1 mr-1 bg-white shadow rounded-lg border border-gray-200 items-center">
+            <TouchableOpacity 
+              className="flex-1 mr-1 bg-white shadow rounded-lg border border-gray-200 items-center" 
+              onPress={handleWaterCardPress}
+            >
               <Text className="text-xl font-semibold mt-4">Water</Text>
               <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">6512.2 kL</Text>
               <View className="w-full p-2 mb-3">
@@ -98,10 +109,13 @@ export default function Index() {
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
     
             {/* Electric Card */}
-            <View className="flex-1 ml-1 bg-white shadow rounded-lg border border-gray-200 items-center">
+            <TouchableOpacity 
+              className="flex-1 ml-1 bg-white shadow rounded-lg border border-gray-200 items-center" 
+              onPress={handleElectricCardPress}
+            >
               <Text className="text-xl font-semibold mt-4">Electric</Text>
               <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">594890 kWh</Text>
               <View className="w-full p-2 mb-3">
@@ -117,7 +131,7 @@ export default function Index() {
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
     
           {/* ✅ Monthly Water Usage Chart */}
