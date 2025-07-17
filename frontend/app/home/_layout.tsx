@@ -25,12 +25,7 @@ export default function HomeLayout() {
       <Stack.Screen
         name="AirDetail"
         options={{
-          headerTitle: () => (
-            <HeaderWithIcon
-              icon={<Feather name="wind" size={20} color="#333" />}
-              label="Air Quality"
-            />
-          ),
+          headerShown: false
         }}
       />
 
