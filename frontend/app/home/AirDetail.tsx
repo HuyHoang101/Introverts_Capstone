@@ -1,76 +1,135 @@
-import React, { useEffect, useState } from "react";
-import { Text, View, FlatList, TouchableOpacity } from "react-native";
-import "@/global.css";
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import CircularProgress from '../../component/CircularProgress';
+import CookieList from '../../component/PollurtantList';
+import { db } from '@/FirebaseConfig';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
-type AirData = {
-  date: string;
-  temperature: number;
-  CO2: number;
-};
 
-const ITEMS_PER_PAGE = 5;
+interface PollutantData {
+  pm25: number;
+  pm10: number;
+  no2: number;
+  o3: number;
+  co: number;
+  timestamp?: Date;
+}
 
-export default function AirDetail() {
-  const [data, setData] = useState<AirData[]>([]);
-  const [page, setPage] = useState(1);
-  const [isPressed, setIsPressed] = useState(false);
-  const [isPressed1, setIsPressed1] = useState(false);
+export default function Mission() {
+  const [dangerScore, setDangerScore] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pollutants, setPollutants] = useState<PollutantData>({
+    pm25: 0,
+    pm10: 0,
+    no2: 0,
+    o3: 0,
+    co: 0,
+  });
 
-  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
-  const startIndex = (page - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentData = data.slice(startIndex, endIndex);
+  const calculateDangerScore = useCallback((data: PollutantData) => {
+    let sum = 0;
 
-  useEffect(() => {
-    fetch("http://192.168.0.103:5000/api/air")
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("API error:", err));
+    // PM2.5 (0-55 μg/m³)
+    sum += Math.min(20, (data.pm25 * 20) / 55);
+    
+    // PM10 (0-254 μg/m³)
+    sum += Math.min(20, (data.pm10 * 20) / 254);
+    
+    // NO₂ (0-360 ppb)
+    sum += Math.min(20, (data.no2 * 20) / 360);
+    
+    // O₃ (0-85 ppb)
+    sum += Math.min(20, (data.o3 * 20) / 85);
+    
+    // CO (0-12.4 ppm)
+    sum += Math.min(20, (data.co * 20) / 12.4);
+
+    return Math.round(sum * 10) / 10; 
   }, []);
 
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    
+    const q = query(
+      collection(db, 'pollutants'),
+      orderBy('timestamp', 'desc'),
+      limit(1)
+    );
+
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        try {
+          if (!querySnapshot.empty) {
+            const data = querySnapshot.docs[0].data() as PollutantData;
+            setPollutants(data);
+            setDangerScore(calculateDangerScore(data));
+          } else {
+            setError('No air quality data available');
+          }
+          setLoading(false);
+        } catch (err) {
+          console.error("Data processing error:", err);
+          setError('Error processing air quality data');
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Firestore error:", error);
+        setError('Failed to load air quality data');
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [calculateDangerScore]);
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+  };
+
   return (
-    <View className="flex-1 items-center justify-center bg-white px-4 w-full">
-      <Text className="text-xl font-bold mb-4 mt-4">Air Data</Text>
-      <FlatList
-        className="w-full"
-        data={currentData}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View className="p-4 border-b border-gray-200 w-full flex-row items-center justify-between">
-            <Text className="text-base italic text-gray-400">{item.date}</Text>
-            <View className="p-4">
-              <Text className="text-base">🌡️ Temp:   {item.temperature}°C</Text>
-              <Text className="text-base">🌫️ CO₂:    {item.CO2} ppm</Text>
-            </View>
+    <View className='flex-1 mt-24 items-center'>
+      <Text className='font-bold text-4xl mb-10'>Danger Score</Text>
+      
+      {loading ? (
+        <View className='flex-1 justify-center items-center'>
+          <ActivityIndicator size="large" />
+          <Text className='mt-8 text-lg text-gray-600'>
+            Calculating danger score...
+          </Text>
+        </View>
+      ) : error ? (
+        <View className='flex-1 justify-center items-center p-4'>
+          <Text className='text-lg text-red-500 mb-4 text-center'>
+            {error}
+          </Text>
+          <TouchableOpacity
+            className='bg-blue-500 py-3 px-6 rounded-full'
+            onPress={handleRetry}
+          >
+            <Text className='text-white font-bold'>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View className='flex-1 '>
+          <View className='items-center z-10 mb-4'>
+            <CircularProgress percentage={dangerScore} />
           </View>
-        )}
-      />
-      {/* Pagination Controls */}
-      <View className="flex-row justify-between mt-4 px-4 space-x-2 mb-4">
-        <TouchableOpacity
-          onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
-          onPressIn={() => setIsPressed(true)}
-          onPressOut={() => setIsPressed(false)}
-          disabled={page === 1}
-          className={`px-4 py-2 rounded-sm ${isPressed ? 'bg-gray-400' : 'bg-transparent'}`}
-        >
-          <Text className={`${page === 1 ? "opacity-0" : ""}`}>{'<'}</Text>
-        </TouchableOpacity>
-
-        <Text className="text-lg self-center">
-          Page {page} / {totalPages}
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          onPressIn={() => setIsPressed1(true)}
-          onPressOut={() => setIsPressed1(false)}
-          disabled={page === totalPages}
-          className={`px-4 py-2 rounded-sm ${isPressed1 ? "bg-gray-400" : "bg-transparent"}`}
-        >
-          <Text className={`${page === totalPages ? "opacity-0" : ""}`}>{'>'}</Text>
-        </TouchableOpacity>
-      </View>
+          
+          <ScrollView className='flex-1 '>
+            <CookieList 
+              pm25={pollutants.pm25}
+              pm10={pollutants.pm10}
+              no2={pollutants.no2}
+              o3={pollutants.o3}
+              co={pollutants.co}
+            />
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 }

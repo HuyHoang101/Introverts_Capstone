@@ -1,9 +1,10 @@
-import { View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, ScrollView, ImageBackground } from 'react-native';
 import { useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import ProgressBar from '@/component/ProgressBar';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import * as Progress from 'react-native-progress';
+import { useRouter } from 'expo-router';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -52,27 +53,47 @@ const chartConfig = {
   const percent = 0.73;
 
 export default function Index() {
-    return (
-        // ✅ Outer scroll container (vertical)
+  const router = useRouter();
+
+  const handleWaterCardPress = () => {
+    router.push('/home/WaterDetail');
+  };
+
+  const handleElectricCardPress = () => {
+    router.push('/home/ElectricDetail');
+  };
+
+  return (<>
+        <ImageBackground
+          source={require('../../assets/images/bg_main.png')}
+          className="flex-1"
+          resizeMode="stretch"
+        >
         <ScrollView
-          className="flex-1 bg-white"
+          className="flex-1 "
           contentContainerStyle={{ paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
         >
     
           {/* ✅ Header */}
-          <View className="flex-row justify-between items-center mt-4 w-full px-4">
-            <Text className="font-semibold text-xl">Last Month Amount</Text>
+          <View className="flex-row justify-between items-center mt-12 w-full px-4 ">
+            <Text className="font-bold text-5xl text-white">Sustainability Data</Text>
+          </View>
+          <View className="flex-row justify-between items-center mt-4 w-full px-4 ">
+            <Text className="font-bold text-3xl text-white">Last Month Amount</Text>
             <TouchableOpacity className="flex-row items-center">
               <MaterialIcons name="emoji-objects" size={24} color={'#dde511'} />
-              <Text>AI insight →</Text>
+              <Text className='text-white font-semibold text-xl'>AI insight →</Text>
             </TouchableOpacity>
           </View>
     
           {/* ✅ Water & Electric Summary Cards */}
           <View className="flex-row justify-between items-center w-full px-2 mt-4">
             {/* Water Card */}
-            <View className="flex-1 mr-1 bg-white shadow rounded-lg border border-gray-200 items-center">
+            <TouchableOpacity 
+              className="flex-1 mr-1 bg-white shadow rounded-lg border border-gray-200 items-center" 
+              onPress={handleWaterCardPress}
+            >
               <Text className="text-xl font-semibold mt-4">Water</Text>
               <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">6512.2 kL</Text>
               <View className="w-full p-2 mb-3">
@@ -88,10 +109,13 @@ export default function Index() {
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
     
             {/* Electric Card */}
-            <View className="flex-1 ml-1 bg-white shadow rounded-lg border border-gray-200 items-center">
+            <TouchableOpacity 
+              className="flex-1 ml-1 bg-white shadow rounded-lg border border-gray-200 items-center" 
+              onPress={handleElectricCardPress}
+            >
               <Text className="text-xl font-semibold mt-4">Electric</Text>
               <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">594890 kWh</Text>
               <View className="w-full p-2 mb-3">
@@ -107,11 +131,12 @@ export default function Index() {
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
     
           {/* ✅ Monthly Water Usage Chart */}
-          <View className="p-2 bg-white rounded-xl shadow mt-6 border border-gray-200 mx-2">
+          <Text className="text-3xl font-bold text-white p-4">Monthly Water Usage</Text>
+          <View className="p-2 bg-white rounded-xl shadow mt-3 border border-gray-200 mx-2">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-gray-800">💧 Monthly Water Usage</Text>
               <TouchableOpacity>
@@ -137,7 +162,8 @@ export default function Index() {
           </View>
     
           {/* ✅ Monthly Electric Usage Line Chart */}
-          <View className="p-2 bg-white rounded-xl shadow mt-6 border border-gray-200 mx-2">
+          <Text className="text-3xl font-bold text-white p-4">Monthly Electric Usage</Text>
+          <View className="p-2 bg-white rounded-xl shadow mt-3 border border-gray-200 mx-2">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-gray-800">⚡️ Monthly Electric Consumption</Text>
               <TouchableOpacity>
@@ -169,11 +195,11 @@ export default function Index() {
           </View>
 
           {/* ✅ Daily Danger score of Air quality */}
-          <Text className="font-semibold text-xl mt-6 ml-2">Daily Air Quality</Text>
+          <Text className="text-3xl font-bold text-white p-4">Air Quality</Text>
           <View className='flex-col justify-center items-center bg-white rounded-lg shadow-md border border-gray-200 p-2 m-2 max-w-full'>
             <View className="flex-row justify-between items-center mb-4 w-full">
               <Text className='text-lg font-bold'>Danger Score</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/home/AirDetail')} >
                 <Text className="text-sm font-semibold">See more →</Text>
               </TouchableOpacity>
             </View>
@@ -215,5 +241,7 @@ export default function Index() {
             </View>
           </View>
         </ScrollView>
+        </ImageBackground>
+        </>
       );
 }
