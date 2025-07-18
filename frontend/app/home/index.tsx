@@ -8,7 +8,7 @@ export default function HomeScreen() {
       contentContainerStyle={{ padding: 16 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header (chỉ còn notification icon) */}
+      {/* Header */}
       <View className="flex-row justify-between items-center mb-14">
         <View className='flex flex-row items-center'>
           <Image source={require('../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
