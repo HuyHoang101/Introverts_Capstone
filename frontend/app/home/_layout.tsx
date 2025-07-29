@@ -21,61 +21,6 @@ export default function HomeLayout() {
           headerShown: false
         }}
       />
-
-      <Stack.Screen
-        name="AirDetail"
-        options={{
-          headerShown: false
-        }}
-      />
-
-      <Stack.Screen
-        name="WaterDetail"
-        options={{
-          headerTitle: () => (
-            <HeaderWithIcon
-              icon={<Feather name="droplet" size={20} color="#333" />}
-              label="Water Quality"
-            />
-          ),
-        }}
-      />
-
-      <Stack.Screen
-        name="PopulationDetail"
-        options={{
-          headerTitle: () => (
-            <HeaderWithIcon
-              icon={<MaterialCommunityIcons name="account-group" size={20} color="#333" />}
-              label="Population"
-            />
-          ),
-        }}
-      />
-
-      <Stack.Screen
-        name="TransportationDetail"
-        options={{
-          headerTitle: () => (
-            <HeaderWithIcon
-              icon={<FontAwesome5 name="bus" size={18} color="#333" />}
-              label="Transportation"
-            />
-          ),
-        }}
-      />
-
-      <Stack.Screen
-        name="ElectricDetail"
-        options={{
-          headerTitle: () => (
-            <HeaderWithIcon
-              icon={<Feather name="zap" size={20} color="#333" />}
-              label="Electric Usage"
-            />
-          ),
-        }}
-      />
     </Stack>
   );
 }

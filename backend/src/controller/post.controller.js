@@ -1,0 +1,49 @@
+import {
+    getAllPosts,
+    getPostById,
+    createPost,
+    updatePost,
+    deletePost,
+  } from '../service/post.service.js';
+  
+  export const getPosts = async (req, res) => {
+    const posts = await getAllPosts();
+    res.json(posts);
+  };
+  
+  export const getPost = async (req, res) => {
+    const post = await getPostById(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    res.json(post);
+  };
+  
+  export const addPost = async (req, res) => {
+    const { title, content, authorId, published } = req.body;
+    try {
+      const post = await createPost({ title, content, authorId, published });
+      res.status(201).json(post);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+  
+  export const updatePostController = async (req, res) => {
+    const { id } = req.params;
+    try {
+      const post = await updatePost(id, req.body);
+      res.json(post);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+  
+  export const deletePostController = async (req, res) => {
+    const { id } = req.params;
+    try {
+      await deletePost(id);
+      res.json({ message: 'Post deleted' });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+  

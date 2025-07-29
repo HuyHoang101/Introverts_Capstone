@@ -1,46 +1,37 @@
-import express, { json } from 'express';
-import cors from 'cors';
-import waterRouter from './routers/water.js';
-import populationRouter from './routers/population.js';
-import airRouter from './routers/air.js';
-import transportationRouter from './routers/transportation.js';
-import electricRouter from './routers/electric.js';
+import express from 'express';
+import dotenv from 'dotenv';
+import userRoutes from './src/routes/user.route.js';
+import postRoutes from './src/routes/post.route.js';
+import commentRoutes from './src/routes/comment.route.js';
+import likeRoutes from './src/routes/like.route.js';
+import waterDataRoutes from './src/routes/waterData.route.js';
+import electricityDataRoutes from './src/routes/electricityData.route.js';
+import pollutionDataRoutes from './src/routes/pollutionData.route.js';
+import roomRoutes from './src/routes/room.route.js';
+import tableRoutes from './src/routes/table.route.js';
+import deviceRoutes from './src/routes/device.route.js';
+import bookingRoutes from './src/routes/bookingTable.route.js';
+
+
+
+dotenv.config();
 
 const app = express();
-const port = 5000;
+app.use(express.json());
 
-// API routes
-app.use(json());
-app.use(cors());
-app.use('/api/water', waterRouter);
-app.use('/api/population', populationRouter);
-app.use('/api/air', airRouter);
-app.use('/api/transportation', transportationRouter);
-app.use('/api/electric', electricRouter);
+app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/likes', likeRoutes);
+app.use('/api/water-data', waterDataRoutes);
+app.use('/api/electricity-data', electricityDataRoutes);
+app.use('/api/pollution-data', pollutionDataRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/tables', tableRoutes);
+app.use('/api/devices', deviceRoutes);
+app.use('/api/bookings', bookingRoutes);
 
-let reports = [];
-// Nhận report từ frontend
-app.post('/api/report', (req, res) => {
-  const report = req.body;
-  reports.push(report); // lưu vào RAM
-  console.log('Received report:', report);
-  res.status(200).json({ message: 'Report saved temporarily in memory' });
-});
 
-// Trả danh sách tất cả report
-app.get('/api/report', (req, res) => {
-  res.status(200).json(reports);
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-  console.log(`It combine:`);
-  console.log(`Server running at http://localhost:${port}/api/water`);
-  console.log(`Server running at http://localhost:${port}/api/population`);
-  console.log(`Server running at http://localhost:${port}/api/air`);
-  console.log(`Server running at http://localhost:${port}/api/transportation`);
-  console.log(`Server running at http://localhost:${port}/api/electric`);
-});
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
+app.listen(5000, '0.0.0.0', () => {
+  console.log("Listening on port 5000");
 });

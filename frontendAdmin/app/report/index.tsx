@@ -48,15 +48,19 @@ export default function Home() {
     });
   };
 
-  const customButton = (building: string, title: string ) => {
-    <>
-      <TouchableOpacity className='p-4 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
-        <Text className='font-medium text-xl'>{building}</Text>
-      </TouchableOpacity>
-      <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
-        <Text className='text-white font-semibold'>1</Text>
-      </View>
-    </>
+  const customButton = (building: string, title: string, num: number ) => {
+    return(
+      <>
+        <TouchableOpacity className='p-4 py-8 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
+          <Text className='font-medium text-xl'>{building}</Text>
+        </TouchableOpacity>
+        {num > 0 ? (
+          <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
+            <Text className='text-white font-semibold'>{num}</Text>
+          </View>
+        ) : (<></>)}
+      </>
+    );
   };
 
   return (
@@ -72,38 +76,18 @@ export default function Home() {
       <View className='flex-col'>
         <View className='flex-row max-w-full mb-2'>
           <View className='flex w-1/2 mr-3'>
-            <TouchableOpacity className='p-4 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
-              <Text className='font-medium text-xl'>Building 1</Text>
-            </TouchableOpacity>
-            <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
-                <Text className='text-white font-semibold'>1</Text>
-            </View>
+            {customButton('Building 1', 'water', 2)}
           </View>
           <View className='flex w-1/2'>
-            <TouchableOpacity className='p-4 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
-              <Text className='font-medium text-xl'>Building 2</Text>
-            </TouchableOpacity>
-            <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
-                <Text className='text-white font-semibold'>1</Text>
-            </View>
+            {customButton('Building 2', 'water', 3)}
           </View>
         </View>
         <View className='flex-row max-w-full'>
           <View className='flex w-1/2 mr-3'>
-            <TouchableOpacity className='p-4 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
-              <Text className='font-medium text-xl'>Building 8</Text>
-            </TouchableOpacity>
-            <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
-                <Text className='text-white font-semibold'>1</Text>
-            </View>
+            {customButton('Building 8', 'water', 0)}
           </View>
           <View className='flex w-1/2'>
-            <TouchableOpacity className='p-4 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
-              <Text className='font-medium text-xl'>Sports Halls</Text>
-            </TouchableOpacity>
-            <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
-                <Text className='text-white font-semibold'>1</Text>
-            </View>
+            {customButton('Sports Halls', 'water', 1)}
           </View>
         </View>
       </View>
@@ -113,12 +97,50 @@ export default function Home() {
         <Text className='font-semibold text-3xl mr-2'>Electric</Text>
         <Image source={require('../../assets/images/lightning.png')} style={{width: 36, height: 36}}/>
       </View>
+      <View className='flex-col'>
+        <View className='flex-row max-w-full mb-2'>
+          <View className='flex w-1/2 mr-3'>
+            {customButton('Building 1', 'water', 0)}
+          </View>
+          <View className='flex w-1/2'>
+            {customButton('Building 2', 'water', 1)}
+          </View>
+        </View>
+        <View className='flex-row max-w-full'>
+          <View className='flex w-1/2 mr-3'>
+            {customButton('Building 8', 'water', 0)}
+          </View>
+          <View className='flex w-1/2'>
+            {customButton('Sports Halls', 'water', 0)}
+          </View>
+        </View>
+      </View>
 
 
       <View className='flex-row items-center mt-6 mb-2'>
         <Text className='font-semibold text-3xl mr-2'>Air Quality</Text>
         <Image source={require('../../assets/images/wind.png')} style={{width: 36, height: 36}}/>
       </View>
+      <View className='flex-col'>
+        <View className='flex-row max-w-full mb-2'>
+          <View className='flex w-1/2 mr-3'>
+            {customButton('Building 1', 'water', 2)}
+          </View>
+          <View className='flex w-1/2'>
+            {customButton('Building 2', 'water', 1)}
+          </View>
+        </View>
+        <View className='flex-row max-w-full'>
+          <View className='flex w-1/2 mr-3'>
+            {customButton('Building 8', 'water', 1)}
+          </View>
+          <View className='flex w-1/2'>
+            {customButton('Sports Halls', 'water', 4)}
+          </View>
+        </View>
+      </View>
+
+
     </ScrollView>
   );
 }

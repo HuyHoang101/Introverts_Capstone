@@ -6,7 +6,7 @@ export default function HomeScreen() {
     <>
     <ImageBackground
       source={require('../../assets/images/bg_main.png')}
-      className="flex-1"
+      className="flex-1 min-h-screen"
       resizeMode="stretch"
     >
     <ScrollView
