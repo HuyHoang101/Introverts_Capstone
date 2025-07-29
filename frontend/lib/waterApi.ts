@@ -1,4 +1,4 @@
-const BASE_URL = 'http://3.1.196.234:5000/api/water-data';
+const BASE_URL = 'https://introvertscapstone-productions.up.railway.app/api/water-data';
 
 const request = async (url: string, options: RequestInit = {}) => {
   const res = await fetch(`${BASE_URL}${url}`, {
