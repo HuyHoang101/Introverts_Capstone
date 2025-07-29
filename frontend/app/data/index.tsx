@@ -10,6 +10,7 @@ import * as Progress from 'react-native-progress';
 import { useRouter } from 'expo-router';
 import { formatDate, formatMonthYear } from '@/utils/time';
 import { calculateDangerScore } from '@/utils/dangerScore';
+import React from 'react';
 
 const screenWidth = Dimensions.get('window').width;
 interface waterData {
@@ -306,7 +307,7 @@ export default function Index() {
               onPress={handleElectricCardPress}
             >
               <Text className="text-xl font-semibold mt-4">Electric</Text>
-              {electric && electric.length > 1 && (
+              {electric && electric.length > 1 ? (
                 <>
                   <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">
                     {electric[0].total.toLocaleString('vi-VN')} kWh
@@ -335,7 +336,8 @@ export default function Index() {
                     </View>
                   </View>
                 </>
-              )}
+              ) : (
+                <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">Underfied</Text>)}
             </TouchableOpacity>
           </View>
     

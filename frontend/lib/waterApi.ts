@@ -1,18 +1,31 @@
 const BASE_URL = 'https://introvertscapstone-production.up.railway.app/api/water-data';
 
 const request = async (url: string, options: RequestInit = {}) => {
-  const res = await fetch(`${BASE_URL}${url}`, {
-    headers: { 'Content-Type': 'application/json' },
-    mode: 'cors',
-    ...options,
-  });
+  try {
+    const res = await fetchWithTimeout(`${BASE_URL}${url}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Error ${res.status}: ${err}`);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Error ${res.status}: ${err}`);
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("❌ Request error:", error);
+    throw error;
   }
-
-  return res.json();
 };
 
 export default request;
+
+function fetchWithTimeout(resource: string, options: RequestInit = {}, timeout = 10000): Promise<Response> {
+  return Promise.race([
+    fetch(resource, options),
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error('⏱ Request timed out')), timeout)
+    ),
+  ]);
+}
