@@ -9,6 +9,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# Cài đặt Prisma CLI
+RUN npx prisma generate
+
 # Copy toàn bộ code
 COPY . .
 
