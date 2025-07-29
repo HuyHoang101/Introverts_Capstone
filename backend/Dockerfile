@@ -9,6 +9,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# Cài đặt Prisma Client
+COPY prisma/schema.prisma ./prisma/schema.prisma
+
 # Cài đặt Prisma CLI
 RUN npx prisma generate
 
