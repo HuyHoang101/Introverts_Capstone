@@ -21,7 +21,7 @@ const app = express();
 
 app.use(cors({
   origin: ['https://introvertscapstone-productions.up.railway.app'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
 app.use(express.json());
