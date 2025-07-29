@@ -11,12 +11,19 @@ import roomRoutes from './src/routes/room.route.js';
 import tableRoutes from './src/routes/table.route.js';
 import deviceRoutes from './src/routes/device.route.js';
 import bookingRoutes from './src/routes/bookingTable.route.js';
+import cors from 'cors';
 
 
 
 dotenv.config();
 
 const app = express();
+
+app.use(cors({
+  origin: ['https://introvertscapstone-productions.up.railway.app'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.use('/api/users', userRoutes);
