@@ -3,6 +3,7 @@ const BASE_URL = 'https://introvertscapstone-productions.up.railway.app/api/wate
 const request = async (url: string, options: RequestInit = {}) => {
   const res = await fetch(`${BASE_URL}${url}`, {
     headers: { 'Content-Type': 'application/json' },
+    mode: 'cors',
     ...options,
   });
 

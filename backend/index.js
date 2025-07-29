@@ -20,7 +20,8 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['https://introvertscapstone-productions.up.railway.app'],
+  origin: ['https://introvertscapstone-productions.up.railway.app',
+    'http://localhost:5000', ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
