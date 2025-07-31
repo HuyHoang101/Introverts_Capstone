@@ -11,6 +11,7 @@ import roomRoutes from './src/routes/room.route.js';
 import tableRoutes from './src/routes/table.route.js';
 import deviceRoutes from './src/routes/device.route.js';
 import bookingRoutes from './src/routes/bookingTable.route.js';
+import authRoutes from './src/auth/auth.route.js';
 import cors from 'cors';
 
 
@@ -20,8 +21,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['https://introvertscapstone-production.up.railway.app',
-    'http://localhost:5000', ],
+  origin: ['https://introvertscapstone-production.up.railway.app', 'http://localhost:5000', ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
@@ -38,6 +38,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/tables', tableRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/auth', authRoutes);
 
 
 app.listen(5000, '0.0.0.0', () => {
