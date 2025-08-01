@@ -6,18 +6,12 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Cài dependencies
-COPY package*.json ./
-RUN npm install
-
-# Sao chép file Prisma schema
 COPY . .
+
+RUN npm install
 
 # Cài đặt Prisma CLI
 RUN npx prisma generate
-
-# Copy toàn bộ code
-COPY . .
-
 # Mở cổng backend
 EXPOSE 5000
 
