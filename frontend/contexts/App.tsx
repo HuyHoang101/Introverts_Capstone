@@ -1,5 +1,6 @@
-import { UserProvider } from "../contexts/UserContext";
+import { UserProvider } from "./UserContext";
 import { Slot } from "expo-router"; // nếu bạn dùng expo-router
+import React from 'react';
 
 export default function App() {
   return (

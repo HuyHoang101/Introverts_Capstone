@@ -1,11 +1,12 @@
 import { View, Text, ScrollView, Pressable, Image, TouchableOpacity, ImageBackground } from 'react-native';
+import React from 'react';
 import { Feather } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   return (
     <>
     <ImageBackground
-      source={require('../../assets/images/bg_main.png')}
+      source={require('../../../assets/images/bg_main.png')}
       className="flex-1 min-h-screen"
       resizeMode="stretch"
     >
@@ -17,7 +18,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View className="flex-row justify-between items-center mb-14">
         <View className='flex flex-row items-center'>
-          <Image source={require('../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
+          <Image source={require('../../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
           <Text className='font-extrabold text-5xl text-white'>GreenSync</Text>
         </View>
         <Feather name="bell" size={36} color="#333" />

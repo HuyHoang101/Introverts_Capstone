@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
-import CircularProgress from '../../component/CircularProgress';
-import CookieList from '../../component/PollurtantList';
+import CircularProgress from '../../../component/CircularProgress';
+import CookieList from '../../../component/PollurtantList';
 import { db } from '@/FirebaseConfig';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { calculateDangerScore } from '../../utils/dangerScore';
-import { getAllAirData } from '../../service/airService';
+import { calculateDangerScore } from '../../../utils/dangerScore';
+import { getAllAirData } from '../../../service/airService';
 import { useLocalSearchParams } from 'expo-router';
 
 

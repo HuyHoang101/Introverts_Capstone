@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React from 'react';
 import { Feather } from "@expo/vector-icons";
 
 const linkedAccounts = ["Google", "Facebook", "Email"];

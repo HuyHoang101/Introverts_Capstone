@@ -18,8 +18,12 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  password  String
+  phone     String?  @unique
+  address   String?
+  birthDate DateTime?
   avatar    String?  @default("https://example.com/default-avatar.png")
-  role      String   @default("USER") // USER, ADMIN, MODERATOR
+  role      String   @default("USER") // STAFF, ADMIN, USER
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

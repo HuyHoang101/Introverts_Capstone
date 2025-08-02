@@ -1,7 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Image } from 'react-native';
+import React from 'react';
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useUser } from "../account/contexts/UserContext";
+import { useUser } from "../../../contexts/UserContext"; // 👈 Import context hook
 
 export default function Profile() {
   // State lưu thông tin gốc

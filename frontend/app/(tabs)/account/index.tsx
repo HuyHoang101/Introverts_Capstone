@@ -1,11 +1,14 @@
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useState } from 'react';
 import { Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import { useUser } from "../account/contexts/UserContext"; // 👈 Import hook
+import { useUser } from '@/contexts/UserContext'; // 👈 Import hook
+import { logout } from '@/service/authService';
 
 export default function Index() {
   const router = useRouter();
   const { username, avatar } = useUser(); // 👈 Lấy data từ Context
+  const [loggingOut, setLoggingOut] = useState(false);
 
   return (
     <ScrollView className="flex-col bg-white">
@@ -55,7 +58,13 @@ export default function Index() {
           icon={<MaterialIcons name="logout" size={24} color="red" />}
           label="Logout"
           isDestructive
-          onPress={() => console.log('Logout pressed')}
+          onPress={async () => {
+            if (loggingOut) return; // chặn double tap
+            setLoggingOut(true);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            logout();
+            router.replace("/(auth)/login");
+          }}
         />
       </View>
     </ScrollView>

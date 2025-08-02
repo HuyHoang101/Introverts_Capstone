@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Image } from 'react-native';
+import React from 'react';
 import { useState } from 'react';
-import { useUser } from "../account/contexts/UserContext"; // 👈 Thêm dòng này
+import { useUser } from "../../../contexts/UserContext"; // 👈 Thêm dòng này
 
 const settingsOptions = ["Change Username", "Change Avatar", "Change Password"];
 

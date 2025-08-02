@@ -1,4 +1,4 @@
-const BASE_URL = 'https://introvertscapstone-production.up.railway.app/api/water-data';
+const BASE_URL = 'https://greensyncintroverts.online/api/water-data';
 
 const request = async (url: string, options: RequestInit = {}) => {
   try {

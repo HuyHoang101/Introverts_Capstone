@@ -34,7 +34,7 @@ export default function WaterList() {
     
     return (
         <ImageBackground
-            source={require("../../assets/images/bg_main.png")}
+            source={require("../../../assets/images/bg_main.png")}
             className="flex-1"
             resizeMode="stretch"
         >

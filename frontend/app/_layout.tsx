@@ -1,69 +1,30 @@
-import { Tabs } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useEffect } from "react";
-import { Platform } from "react-native";
-import * as NavigationBar from "expo-navigation-bar";
+// app/_layout.tsx
+import { Slot } from "expo-router";
+import { useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { View, ActivityIndicator } from "react-native";
+import React from "react";
 
 export default function RootLayout() {
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
+
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setVisibilityAsync('hidden'); // ✅ hide bottom bar
-      NavigationBar.setBehaviorAsync('overlay-swipe'); // ⛔ prevents it from reappearing on swipe
-    }
+    const checkToken = async () => {
+      const storedToken = await SecureStore.getItemAsync("accessToken");
+      setToken(storedToken);
+      setLoading(false);
+    };
+    checkToken();
   }, []);
 
-  return (
-    <Tabs
-      initialRouteName="home"
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { height: 60 },
-        tabBarLabelStyle: { fontSize: 12 },
-        tabBarActiveTintColor: '#2563eb', // optional: Tailwind's blue-600
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="data"
-        options={{
-          title: "Data",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="bar-chart" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="report"
-        options={{
-          title: "Report",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="report" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="account"
-        options={{
-          title: "Account",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
-    </Tabs>
-  );
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return <Slot />;
 }

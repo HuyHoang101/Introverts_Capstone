@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ImageBackground, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import "@/global.css";
 import { formatVietnamTime } from "@/utils/time";
 
@@ -46,7 +46,7 @@ export default function WaterDetail() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/bg_main.png")}
+      source={require("../../../assets/images/bg_main.png")}
       className="flex-1"
       resizeMode="stretch"
     >
