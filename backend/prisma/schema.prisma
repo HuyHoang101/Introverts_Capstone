@@ -21,6 +21,7 @@ model User {
   password  String
   phone     String?  @unique
   address   String?
+  introduction String? @default("Hi there, welcome to my profile!")
   birthDate DateTime?
   avatar    String?  @default("https://example.com/default-avatar.png")
   role      String   @default("USER") // STAFF, ADMIN, USER

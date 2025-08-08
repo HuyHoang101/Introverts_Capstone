@@ -49,6 +49,15 @@ export const formatDate = (timestamp: any): string => {
   return date.format('DD/MM');
 };
 
+export const formatDateYear = (timestamp: any): string => {
+  const date = timestamp?._seconds
+    ? dayjs.unix(timestamp._seconds)
+    : dayjs(timestamp);
+
+  return date.format('DD/MM/YYYY');
+};
+
+
 /**
  * Show relative time like "3 hours ago"
  */
