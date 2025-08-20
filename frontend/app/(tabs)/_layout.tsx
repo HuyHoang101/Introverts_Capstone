@@ -60,6 +60,15 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+  name="booking"
+  options={{
+    title: "Booking",
+    tabBarIcon: ({ color, size }) => (
+      <MaterialIcons name="event-seat" size={size} color={color} />
+    ),
+  }}
+/>
+      <Tabs.Screen
         name="index"
         options={{
           href: null,
