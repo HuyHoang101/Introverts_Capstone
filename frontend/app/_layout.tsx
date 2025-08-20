@@ -1,18 +1,15 @@
-// app/_layout.tsx
 import { Slot } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { View, ActivityIndicator } from "react-native";
-import React from "react";
+import Toast from "react-native-toast-message"; // ← thêm
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const checkToken = async () => {
-      const storedToken = await SecureStore.getItemAsync("accessToken");
-      setToken(storedToken);
+      await SecureStore.getItemAsync("accessToken");
       setLoading(false);
     };
     checkToken();
@@ -26,5 +23,10 @@ export default function RootLayout() {
     );
   }
 
-  return <Slot />;
+  return (
+    <>
+      <Slot />
+      <Toast /> {/* ← thêm */}
+    </>
+  );
 }
