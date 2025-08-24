@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getPosts,
   getPost,
+  getPostsById,
   addPost,
   updatePostController,
   deletePostController,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.get('/', getPosts);
 router.get('/:id', getPost);
+router.get('/author/:authorId', getPostsById);
 router.post('/', addPost);
 router.put('/:id', updatePostController);
 router.delete('/:id', deletePostController);

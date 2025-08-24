@@ -21,8 +21,26 @@ export const getPostById = (id) => {
   });
 };
 
+export const getPostsByAuthorId = (authorId) => {
+  return prisma.post.findMany({
+    where: { authorId },
+    include: {
+      author: true,
+      Comment: true,
+      like: true,
+    },
+  });
+};
+
 export const createPost = (data) => {
-  return prisma.post.create({ data });
+  return prisma.post.create({
+    data,
+    include: {
+      author: true,
+      Comment: true,
+      like: true,
+    },
+  });
 };
 
 export const updatePost = (id, data) => {

@@ -20,7 +20,7 @@ export default function RootLayout() {
         headerShown: false,
         tabBarStyle: { height: 60 },
         tabBarLabelStyle: { fontSize: 12 },
-        tabBarActiveTintColor: '#2563eb', // optional: Tailwind's blue-600
+        tabBarActiveTintColor: '#228B22', // optional: Tailwind's green-600
       }}
     >
       <Tabs.Screen

@@ -5,6 +5,7 @@ import * as SecureStore from "expo-secure-store";
 import { View, ActivityIndicator } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
+import "../global.css";
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);

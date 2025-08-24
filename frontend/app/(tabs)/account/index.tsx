@@ -13,6 +13,7 @@ interface User {
   email: string;
   avatar?: string; // Optional avatar URL
   phone: string;
+  introduction: string;
   address: string;
   birthday: string;
   createdAt: string;
@@ -53,7 +54,7 @@ export default function Index() {
         />
         {/* User Info */}
         <View className="mt-4 items-center">
-          <Text className="text-lg font-bold">{user?.name || 'Unknown User'}</Text>
+          <Text className="text-lg font-bold text-black">{user?.name || 'Unknown User'}</Text>
           <Text className="text-gray-500">Email: {user?.email || 'example@gmail.com'}</Text>
         </View>
       </View>

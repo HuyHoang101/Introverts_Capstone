@@ -77,7 +77,7 @@ export default function RegisterScreen() {
                         animate={{ opacity: 1, translateY: 0 }}
                         transition={{ delay: 250, duration: 1000 }}
                     >
-                        <Text className='text-3xl font-bold mb-6'>Hello, register now</Text>
+                        <Text className='text-3xl font-bold text-black mb-6'>Hello, register now</Text>
                     </MotiView>
 
                     <MotiView
@@ -86,12 +86,13 @@ export default function RegisterScreen() {
                         transition={{ delay: 375, duration: 1000 }}
                         className='w-full'
                     >
-                        <Text>Name</Text>
+                        <Text className='text-black'>Name</Text>
                         <TextInput
                             value={name}
                             onChangeText={setName}
                             placeholder="Your name"
-                            className='border border-gray-400 p-2 mb-4 w-full rounded'
+                            placeholderTextColor="#9ca3af"
+                            className='border border-gray-400 p-2 mb-4 w-full rounded text-black'
                         />
                     </MotiView>
 
@@ -101,14 +102,15 @@ export default function RegisterScreen() {
                         transition={{ delay: 500, duration: 1000 }}
                         className='w-full'
                     >
-                        <Text>Email</Text>
+                        <Text className='text-black'>Email</Text>
                         <TextInput
                             value={email}
                             onChangeText={setEmail}
                             placeholder="Email"
+                            placeholderTextColor="#9ca3af"
                             autoCapitalize="none"
                             keyboardType="email-address"
-                            className='border border-gray-400 p-2 mb-4 w-full rounded'
+                            className='border border-gray-400 p-2 mb-4 w-full rounded text-black'
                         />
                     </MotiView>
 
@@ -118,21 +120,21 @@ export default function RegisterScreen() {
                         transition={{ delay: 625, duration: 1000 }}
                         className='w-full'
                     >
-                        <Text>Password</Text>
+                        <Text className='text-black'>Password</Text>
                         <View className='w-full relative'>
                             <TextInput
                             value={password}
                             onChangeText={setPassword}
                             placeholder="Password"
-                            secureTextEntry
-                            className='border border-gray-400 p-2 mb-4 w-full rounded'
+                            placeholderTextColor="#9ca3af"
+                            secureTextEntry={!showPassword}
+                            className='border border-gray-400 p-2 mb-4 w-full rounded text-black'
                             />
-                            <TouchableOpacity className="absolute right-2 top-0" onPress={() => setShowPassword(!showPassword)}>
+                            <TouchableOpacity className="absolute right-2 top-3" onPress={() => setShowPassword(!showPassword)}>
                             <MaterialIcons
                                 name={showPassword ? "visibility" : "visibility-off"}
                                 size={20}
                                 color="gray"
-                                className="absolute right-0 top-2"
                             />
                             </TouchableOpacity>
                         </View>
@@ -144,21 +146,21 @@ export default function RegisterScreen() {
                         transition={{ delay: 750, duration: 1000 }}
                         className='w-full'
                     >
-                        <Text>Confirm Password</Text>
+                        <Text className='text-black'>Confirm Password</Text>
                         <View className='w-full relative'>
                             <TextInput
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
                             placeholder="Confirm Password"
-                            secureTextEntry
-                            className='border border-gray-400 p-2 w-full rounded'
+                            placeholderTextColor="#9ca3af"
+                            secureTextEntry={!showConfirmPassword}
+                            className='border border-gray-400 p-2 w-full rounded text-black'
                             />
-                            <TouchableOpacity className="absolute right-2 top-0" onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            <TouchableOpacity className="absolute right-2 top-3" onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                             <MaterialIcons
                                 name={showConfirmPassword ? "visibility" : "visibility-off"}
                                 size={20}
                                 color="gray"
-                                className="absolute right-0 top-2"
                             />
                             </TouchableOpacity>
                         </View>
@@ -175,7 +177,7 @@ export default function RegisterScreen() {
                             <MaterialIcons className='absolute top-0 left-0' name="check" size={24} color="gray" />
                         )}
                         </TouchableOpacity>
-                        <Text className="text-base">Remeber me</Text>
+                        <Text className="text-black">Remeber me</Text>
                     </MotiView>
 
                     <MotiView 
@@ -206,7 +208,7 @@ export default function RegisterScreen() {
                     from={{ opacity: 0, translateY: -30 }}
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ delay: 1250, duration: 1000 }} 
-                    className='flex-row items-center justify-center w-full mt-4'>
+                    className='flex-row items-center justify-center w-full mt-4 text-black'>
                         <Text>Already have an account?  </Text>
                         <TouchableOpacity
                             className='items-center'

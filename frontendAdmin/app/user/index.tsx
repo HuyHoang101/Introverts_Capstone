@@ -1,202 +1,231 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Touchable, Modal } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons'; // để hiện icon "+" nếu dùng Expo
+import bcrypt from "bcryptjs";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  Image,
+} from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import {
+  getAllUsers,
+  addUser,
+  updateUser,
+  deleteUser,
+  uploadUserAvatar,
+  deleteUserAvatar,
+} from "@/service/userService";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 8;
+bcrypt.setRandomFallback((len) => {
+  const arr: number[] = [];
+  for (let i = 0; i < len; i++) {
+    arr[i] = Math.floor(Math.random() * 256);
+  }
+  return arr;
+});
 
 export default function UserListScreen() {
-  const [allUsers, setAllUsers] = useState<any[]>([
-    { "id": 1, "role": "staff", "name": "Alice Nguyen", "email": "alice.nguyen@rmit.edu.vn" },
-    { "id": 2, "role": "staff", "name": "Brian Tran", "email": "brian.tran@rmit.edu.vn" },
-    { "id": 3, "role": "staff", "name": "Carol Le", "email": "carol.le@rmit.edu.vn" },
-    { "id": 4, "role": "staff", "name": "Daniel Pham", "email": "daniel.pham@rmit.edu.vn" },
-    { "id": 5, "role": "staff", "name": "Emma Vo", "email": "emma.vo@rmit.edu.vn" },
-    { "id": 6, "role": "staff", "name": "Frank Do", "email": "frank.do@rmit.edu.vn" },
-    { "id": 7, "role": "staff", "name": "Grace Huynh", "email": "grace.huynh@rmit.edu.vn" },
-    { "id": 8, "role": "staff", "name": "Henry Ngo", "email": "henry.ngo@rmit.edu.vn" },
-    { "id": 9, "role": "staff", "name": "Ivy Lam", "email": "ivy.lam@rmit.edu.vn" },
-    { "id": 10, "role": "staff", "name": "Jacky Nguyen", "email": "jacky.nguyen@rmit.edu.vn" },
-    { "id": 11, "role": "staff", "name": "Kelly Mai", "email": "kelly.mai@rmit.edu.vn" },
-    { "id": 12, "role": "staff", "name": "Leo Bui", "email": "leo.bui@rmit.edu.vn" },
-    { "id": 13, "role": "staff", "name": "Mia Dinh", "email": "mia.dinh@rmit.edu.vn" },
-    { "id": 14, "role": "staff", "name": "Nathan Ho", "email": "nathan.ho@rmit.edu.vn" },
-    { "id": 15, "role": "staff", "name": "Olivia Chau", "email": "olivia.chau@rmit.edu.vn" },
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-    { "id": 16, "role": "student", "name": "Peter Nguyen", "sid": "s3874561" },
-    { "id": 17, "role": "student", "name": "Quynh Tran", "sid": "s3874562" },
-    { "id": 18, "role": "student", "name": "Ryan Le", "sid": "s3874563" },
-    { "id": 19, "role": "student", "name": "Sophie Vo", "sid": "s3874564" },
-    { "id": 20, "role": "student", "name": "Tommy Do", "sid": "s3874565" },
-    { "id": 21, "role": "student", "name": "Uyen Huynh", "sid": "s3874566" },
-    { "id": 22, "role": "student", "name": "Victor Ngo", "sid": "s3874567" },
-    { "id": 23, "role": "student", "name": "Wendy Lam", "sid": "s3874568" },
-    { "id": 24, "role": "student", "name": "Xuan Nguyen", "sid": "s3874569" },
-    { "id": 25, "role": "student", "name": "Yen Pham", "sid": "s3874570" },
-    { "id": 26, "role": "student", "name": "Zack Le", "sid": "s3874571" },
-    { "id": 27, "role": "student", "name": "Anh Bui", "sid": "s3874572" },
-    { "id": 28, "role": "student", "name": "Bao Dinh", "sid": "s3874573" },
-    { "id": 29, "role": "student", "name": "Chi Ho", "sid": "s3874574" },
-    { "id": 30, "role": "student", "name": "Duy Chau", "sid": "s3874575" }
-  ]);
-  const [staffSearch, setStaffSearch] = useState('');
-  const [studentSearch, setStudentSearch] = useState('');
-  const [staffPage, setStaffPage] = useState(1);
-  const [studentPage, setStudentPage] = useState(1);
+  // Modal Add/Edit
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', sid: '', role: '' });
-  const openAddUserModal = (role: 'staff' | 'student') => {
-    setNewUser({ name: '', email: '', sid: '', role }); // reset + set role
-    setIsModalVisible(true);
-  };
-  const [editingUser, setEditingUser] = useState(null); // null | user object
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const openEditUserModal = (user: any) => {
-    setEditingUser(user);
-    setIsEditModalVisible(true);
-  };  
-  
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [userForm, setUserForm] = useState({
+    email: "",
+    name: "",
+    password: "",
+    phone: "",
+    address: "",
+    introduction: "",
+    birthDate: "",
+    role: "USER",
+  });
+  const [pickedAvatar, setPickedAvatar] = useState<string | null>(null);
 
+  // Fetch user list
   useEffect(() => {
-    fetch('http://192.168.0.112:5000/api/user')
-      .then(res => res.json())
-      .then(data => setAllUsers(data))
-      .catch(err => console.error('Lỗi fetch user:', err));
+    loadUsers();
   }, []);
 
+  const loadUsers = async () => {
+  try {
+    console.log("Fetching users...");
+    const data = await getAllUsers();
+    console.log("Users fetched:", data);
+    setAllUsers(data);
+  } catch (err: any) {
+    console.error("Fetch users error:", err?.response || err?.message || err);
+  }
+};
+
+  // Mở modal Add
+  const openAddUserModal = () => {
+    setEditingUser(null);
+    setUserForm({
+      email: "",
+      name: "",
+      password: "",
+      phone: "",
+      address: "",
+      introduction: "",
+      birthDate: "",
+      role: "USER",
+    });
+    setPickedAvatar(null);
+    setIsModalVisible(true);
+  };
+
+  // Mở modal Edit
+  const openEditUserModal = (user: any) => {
+    setEditingUser(user);
+    setUserForm({
+      email: user.email || "",
+      name: user.name || "",
+      password: "", // không show password cũ
+      phone: user.phone || "",
+      address: user.address || "",
+      introduction: user.introduction || "",
+      birthDate: user.birthDate ? user.birthDate.split("T")[0] : "",
+      role: user.role || "USER",
+    });
+    setPickedAvatar(null);
+    setIsModalVisible(true);
+  };
+
+  // Pick Image
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setPickedAvatar(result.assets[0].uri);
+    }
+  };
+
   // Delete user
-  const handleDeleteUser = (id: number) => {
-    Alert.alert(
-      'Confirm Deletion',
-      'Are you sure you want to delete this user?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await fetch(`http://localhost:5000/api/user/${id}`, {
-                method: 'DELETE',
-              });
-  
-              if (response.ok) {
-                // Successfully deleted: update local user list
-                setAllUsers(prev => prev.filter(user => user.id !== id));
-              } else {
-                const errText = await response.text();
-                Alert.alert('Delete Failed', errText || 'Unable to delete the user.');
+  const handleDeleteUser = (id: string, avatar?: string) => {
+    Alert.alert("Confirm Deletion", "Are you sure you want to delete this user?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (avatar) {
+              try {
+                await deleteUserAvatar(id);
+              } catch (err) {
+                console.warn("Delete avatar failed:", err);
               }
-            } catch (error) {
-              console.error('Error deleting user:', error);
-              Alert.alert('Delete Failed', 'Unable to connect to the server.');
             }
+            await deleteUser(id);
+            setAllUsers((prev) => prev.filter((u) => u.id !== id));
+          } catch (error) {
+            console.error("Error deleting user:", error);
+            Alert.alert("Delete Failed", "Unable to connect to server.");
           }
-        }
-      ],
-      { cancelable: true }
-    );
-  };
-  
-
-  //Add user
-  const handleAddUser = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/api/user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newUser),
-      });
-  
-      if (!res.ok) throw new Error('Failed to add user');
-  
-      const savedUser = await res.json();
-  
-      setAllUsers(prev => [...prev, savedUser]);
-      setIsModalVisible(false);
-    } catch (err) {
-      console.error('Error adding user:', err);
-      alert('Failed to add user.');
-    }
+      },
+    ]);
   };
 
-  const handleSaveEditUser = async () => {
+  // Save Add/Edit
+  const handleSaveUser = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user/${editingUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editingUser),
-      });
-  
-      if (response.ok) {
-        setAllUsers(prev =>
-          prev.map(u => (u.id === editingUser.id ? editingUser : u))
-        );
-        setIsEditModalVisible(false);
-      } else {
-        Alert.alert('Update failed', await response.text());
+      if (!userForm.email) {
+        Alert.alert("Validation", "Email is required.");
+        return;
       }
+      if (!editingUser && !userForm.password) {
+        Alert.alert("Validation", "Password is required when creating user.");
+        return;
+      }
+
+      if (editingUser) {
+        // Update user
+        const updated = await updateUser(editingUser.id, {
+          email: userForm.email,
+          name: userForm.name,
+          phone: userForm.phone,
+          address: userForm.address,
+          introduction: userForm.introduction,
+          birthDate: userForm.birthDate,
+          role: userForm.role,
+        });
+
+        // Upload avatar nếu có
+        if (pickedAvatar) {
+          await uploadUserAvatar(editingUser.id, pickedAvatar);
+          updated.avatar = pickedAvatar; // local preview
+        }
+
+        setAllUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      } else {
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPassword = bcrypt.hashSync(userForm.password, salt);
+        // Add user
+        const newUser = await addUser({
+          email: userForm.email,
+          password: hashedPassword,
+          name: userForm.name || "Unnamed",   // ✔ có giá trị thật
+          role: userForm.role || "USER"       // ✔ role mặc định
+        });
+        setAllUsers((prev) => [...prev, newUser]);
+      }
+
+      setIsModalVisible(false);
+      setPickedAvatar(null);
     } catch (err) {
-      console.error(err);
-      Alert.alert('Error', 'Could not connect to server.');
+      console.error("Save user error:", err);
+      Alert.alert("Failed", "Could not save user.");
     }
   };
-  
-  
 
-  // STAFF FILTER
-  const filteredStaff = allUsers
-    .filter(u => u.role === 'staff')
-    .filter(u =>
-      u.name.toLowerCase().includes(staffSearch.toLowerCase()) ||
-      u.email.toLowerCase().includes(staffSearch.toLowerCase())
+  // Filter + Pagination
+  const filteredUsers = allUsers.filter(
+    (u) =>
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      u.phone?.toLowerCase().includes(search.toLowerCase())
   );
+  const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
+  const usersToDisplay = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const totalStaffPages = Math.ceil(filteredStaff.length / PAGE_SIZE);
-  const staffToDisplay = filteredStaff.slice(
-    (staffPage - 1) * PAGE_SIZE,
-    staffPage * PAGE_SIZE
-  );
-
-  // STUDENT FILTER
-  const filteredStudent = allUsers
-    .filter(u => u.role === 'student')
-    .filter(u =>
-      u.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-      (u.sid && u.sid.toLowerCase().includes(studentSearch.toLowerCase()))
-  );
-
-  const totalStudentPages = Math.ceil(filteredStudent.length / PAGE_SIZE);
-  const studentToDisplay = filteredStudent.slice(
-    (studentPage - 1) * PAGE_SIZE,
-    studentPage * PAGE_SIZE
-  );
-
-  // Pagination Buttons Renderer
-  const renderPagination = (totalPages: number, currentPage: number, setPage: (n: number) => void) => {
+  // Pagination buttons
+  const renderPagination = () => {
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
       pages.push(
         <TouchableOpacity
           key={i}
           onPress={() => setPage(i)}
-          className={`px-3 py-1 rounded-full border mx-1 ${currentPage === i ? 'bg-blue-500 border-blue-600' : 'bg-white border-gray-300'}`}
+          className={`px-3 py-1 rounded-full border mx-1 ${
+            page === i ? "bg-blue-500 border-blue-600" : "bg-white border-gray-300"
+          }`}
         >
-          <Text className={`${currentPage === i ? 'text-white' : 'text-gray-800'}`}>{i}</Text>
+          <Text className={`${page === i ? "text-white" : "text-gray-800"}`}>{i}</Text>
         </TouchableOpacity>
       );
     }
     return <View className="flex-row justify-center mt-2 flex-wrap">{pages}</View>;
   };
 
-  // Render Delete button when swipe left
-  const renderRightActions = (id: number) => (
+  // Swipe Delete
+  const renderRightActions = (user: any) => (
     <TouchableOpacity
-      onPress={() => handleDeleteUser(id)}
+      onPress={() => handleDeleteUser(user.id, user.avatar)}
       className="bg-red-500 justify-center items-center w-[80px] rounded-xl mb-2 ml-2"
     >
       <Text className="text-white font-bold">Delete</Text>
@@ -206,179 +235,137 @@ export default function UserListScreen() {
   return (
     <>
       <ScrollView className="flex-1 bg-white p-4">
-        {/* STAFF LIST */}
-        <View className='mb-8'>
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-3xl font-bold">Staff</Text>
-            <TouchableOpacity
-              onPress={() => openAddUserModal('staff')}
-              className="p-1 bg-blue-500 rounded-full"
-            >
-              <Ionicons name="add" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-          <TextInput
-            placeholder="Search by name or email..."
-            placeholderTextColor={'gray'}
-            style={{ fontStyle: 'italic' }}
-            className="border border-gray-300 rounded-lg px-4 py-2 mb-4"
-            value={staffSearch}
-            onChangeText={(text) => {
-              setStaffSearch(text);
-              setStaffPage(1);
-            }}
-          />
-          {staffToDisplay.map(user => (
-            <Swipeable
-              key={user.id}
-              renderRightActions={() => renderRightActions(user.id)}
-            >
-              <TouchableOpacity 
-              onPress={() => openEditUserModal(user)}
-              className="bg-blue-50 rounded-xl p-4 mb-2">
-                <Text className="text-lg font-semibold">{user.name}</Text>
-                <Text className="text-sm text-gray-700">{user.email}</Text>
-              </TouchableOpacity>
-            </Swipeable>
-          ))}
-          {renderPagination(totalStaffPages, staffPage, setStaffPage)}
+        {/* Header */}
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-3xl font-bold">Users</Text>
+          <TouchableOpacity onPress={openAddUserModal} className="p-1 bg-blue-500 rounded-full">
+            <MaterialIcons name="add" size={24} color="white" />
+          </TouchableOpacity>
         </View>
 
-        {/* STUDENT LIST */}
-        <View>
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-3xl font-bold">Student</Text>
+        {/* Search */}
+        <TextInput
+          placeholder="Search by name, email or phone..."
+          placeholderTextColor={"gray"}
+          style={{ fontStyle: "italic" }}
+          className="border border-gray-300 rounded-lg px-4 py-2 mb-4"
+          value={search}
+          onChangeText={(text) => {
+            setSearch(text);
+            setPage(1);
+          }}
+        />
+
+        {/* List */}
+        {usersToDisplay.map((user) => (
+          <Swipeable key={user.id} renderRightActions={() => renderRightActions(user)}>
             <TouchableOpacity
-              onPress={() => openAddUserModal('student')}
-              className="p-1 bg-green-500 rounded-full"
-            >
-              <Ionicons name="add" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-          <TextInput
-            placeholder="Search by name or SID..."
-            placeholderTextColor={'gray'}
-            style={{ fontStyle: 'italic' }}
-            className="border border-gray-300 rounded-lg px-4 py-2 mb-4"
-            value={studentSearch}
-            onChangeText={(text) => {
-              setStudentSearch(text);
-              setStudentPage(1);
-            }}
-          />
-          {studentToDisplay.map(user => (
-            <Swipeable
-              key={user.id}
-              renderRightActions={() => renderRightActions(user.id)}
-            >
-              <TouchableOpacity
               onPress={() => openEditUserModal(user)}
-              className="bg-green-50 rounded-xl p-4 mb-2">
-                <Text className="text-lg font-semibold">{user.name}</Text>
-                <Text className="text-sm text-gray-700">SID: {user.sid}</Text>
-              </TouchableOpacity>
-            </Swipeable>
-          ))}
-          {renderPagination(totalStudentPages, studentPage, setStudentPage)}
-        </View>
+              className="bg-gray-50 rounded-xl p-4 mb-2"
+            >
+              <Text className="text-lg font-semibold">{user.name || "No name"}</Text>
+              <Text className="text-sm text-gray-700">{user.email}</Text>
+              {user.phone && <Text className="text-sm text-gray-700">📞 {user.phone}</Text>}
+              {user.role && (
+                <Text className="text-xs text-gray-500 italic">Role: {user.role}</Text>
+              )}
+            </TouchableOpacity>
+          </Swipeable>
+        ))}
+
+        {renderPagination()}
       </ScrollView>
+
+      {/* Modal Add/Edit */}
       {isModalVisible && (
         <Modal visible={true} transparent animationType="slide">
           <View className="absolute inset-0 bg-black/40 justify-center items-center z-50">
-            <View className="bg-white w-[90%] p-4 rounded-xl shadow-lg">
-              <Text className="text-xl font-bold mb-4">Add {newUser.role}</Text>
+            <ScrollView className="bg-white w-[90%] p-4 rounded-xl shadow-lg max-h-[90%]">
+              <Text className="text-xl font-bold mb-4">
+                {editingUser ? "Edit User" : "Add User"}
+              </Text>
 
-              <TextInput
-                placeholder="Name"
-                value={newUser.name}
-                onChangeText={(text) => setNewUser(prev => ({ ...prev, name: text }))}
-                className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
-              />
+              {editingUser ? (
+                <>
+                  {[
+                    { key: "email", label: "Email", required: true },
+                    { key: "name", label: "Name" },
+                    { key: "phone", label: "Phone" },
+                    { key: "address", label: "Address" },
+                    { key: "introduction", label: "Introduction" },
+                    { key: "birthDate", label: "Birth Date (YYYY-MM-DD)" },
+                    { key: "role", label: "Role (USER/STAFF/ADMIN)" },
+                  ].map((f) => (
+                    <TextInput
+                      key={f.key}
+                      placeholder={f.label}
+                      value={(userForm as any)[f.key]}
+                      onChangeText={(text) =>
+                        setUserForm((prev) => ({ ...prev, [f.key]: text }))
+                      }
+                      className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
+                    />
+                  ))}
 
-              {newUser.role === 'staff' ? (
-                <TextInput
-                  placeholder="Email"
-                  value={newUser.email}
-                  onChangeText={(text) => setNewUser(prev => ({ ...prev, email: text }))}
-                  className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
-                />
+                  {/* Avatar Upload */}
+                  <TouchableOpacity
+                    onPress={pickImage}
+                    className="bg-gray-200 rounded-lg p-3 mb-3 items-center"
+                  >
+                    <Text>Pick Avatar</Text>
+                  </TouchableOpacity>
+                  {pickedAvatar ? (
+                    <Image
+                      source={{ uri: pickedAvatar }}
+                      className="w-24 h-24 rounded-full self-center mb-3"
+                    />
+                  ) : editingUser?.avatar ? (
+                    <Image
+                      source={{ uri: editingUser.avatar }}
+                      className="w-24 h-24 rounded-full self-center mb-3"
+                    />
+                  ) : null}
+                </>
               ) : (
-                <TextInput
-                  placeholder="Student ID"
-                  value={newUser.sid}
-                  onChangeText={(text) => setNewUser(prev => ({ ...prev, sid: text }))}
-                  className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
-                />
+                // Form ADD
+                <>
+                  {[
+                    { key: "email", label: "Email", required: true },
+                    { key: "password", label: "Password", type: "password", required: true },
+                  ].map((f) => (
+                    <TextInput
+                      key={f.key}
+                      placeholder={f.label}
+                      secureTextEntry={f.type === "password"}
+                      value={(userForm as any)[f.key]}
+                      onChangeText={(text) =>
+                        setUserForm((prev) => ({ ...prev, [f.key]: text }))
+                      }
+                      className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
+                    />
+                  ))}
+                </>
               )}
 
-              <View className="flex-row justify-end space-x-3">
-                <TouchableOpacity onPress={() => setIsModalVisible(false)} className="px-4 py-2 bg-gray-300 rounded-lg">
+              {/* Buttons */}
+              <View className="flex-row justify-end">
+                <TouchableOpacity
+                  onPress={() => setIsModalVisible(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-lg mr-2"
+                >
                   <Text>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleAddUser} className="px-4 py-2 bg-blue-500 rounded-lg">
-                  <Text className="text-white">Add</Text>
+                <TouchableOpacity
+                  onPress={handleSaveUser}
+                  className="px-4 py-2 bg-blue-500 rounded-lg"
+                >
+                  <Text className="text-white">{editingUser ? "Save" : "Add"}</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </ScrollView>
           </View>
         </Modal>
-        )}
-
-        {isEditModalVisible && editingUser && (
-          <Modal visible={true} transparent animationType="slide">
-            <View className="absolute inset-0 bg-black/40 justify-center items-center z-50">
-              <View className="bg-white w-[90%] p-4 rounded-xl shadow-lg">
-                <Text className="text-xl font-bold mb-4">Edit {editingUser.role}</Text>
-
-                <TextInput
-                  placeholder="Name"
-                  value={editingUser.name}
-                  onChangeText={(text) =>
-                    setEditingUser(prev => ({ ...prev, name: text }))
-                  }
-                  className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
-                />
-
-                {editingUser.role === 'staff' ? (
-                  <TextInput
-                    placeholder="Email"
-                    value={editingUser.email}
-                    onChangeText={(text) =>
-                      setEditingUser(prev => ({ ...prev, email: text }))
-                    }
-                    className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
-                  />
-                ) : (
-                  <TextInput
-                    placeholder="Student ID"
-                    value={editingUser.sid}
-                    onChangeText={(text) =>
-                      setEditingUser(prev => ({ ...prev, sid: text }))
-                    }
-                    className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
-                  />
-                )}
-
-                <View className="flex-row justify-end space-x-3">
-                  <TouchableOpacity
-                    onPress={() => setIsEditModalVisible(false)}
-                    className="px-4 py-2 bg-gray-300 rounded-lg"
-                  >
-                    <Text>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={handleSaveEditUser}
-                    className="px-4 py-2 bg-blue-500 rounded-lg"
-                  >
-                    <Text className="text-white">Save</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        )}
-
+      )}
     </>
   );
 }

@@ -1,146 +1,273 @@
-import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity} from 'react-native';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { format } from 'date-fns';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
+import { getAllUsers } from '@/service/userService';
+import { getAllLikes } from '@/service/likeService';
+import { getAllPosts, deletePost } from '@/service/postService'; // <-- cần hàm delete
 
 type Report = {
+  id: string;
+  name: string;
+  avatar: string;
+  status: string;
   title: string;
   location: string;
-  datetime: string;
+  datetime: string; // ISO string
   problem: string;
   description: string;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
+  likeCount?: number;
 };
 
+type Post = {
+  id: string;
+  problem: string;
+  title: string;
+  description: string;
+  location: string;
+  content: string;
+  published: boolean;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+  like?: Like[];
+};
 
-function formatDate(datetime: string) {
-    return format(new Date(datetime), 'dd MMM yyyy, HH:mm');
+type Like = {
+  id: string;
+  authorId: string;
+  postId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  phone?: string;
+  introduction?: string;
+  address?: string;
+  birthday?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+function safeFormatDate(datetime?: string) {
+  if (!datetime) return '';
+  const d = new Date(datetime);
+  if (isNaN(d.getTime())) return datetime;
+  return format(d, 'dd MMM yyyy, HH:mm');
 }
 
-export default function Home() {
-  const router = useRouter();
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
+const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/report') // thay đổi nếu dùng Android/device
-      .then((res) => res.json())
-      .then((data) => setReports(data))
-      .catch((err) => console.error('Lỗi fetch:', err))
-      .finally(() => setLoading(false));
+const ReportForm = () => {
+  const router = useRouter();
+
+  const [filterTitle, setFilterTitle] = useState<string>('all');
+
+  // dữ liệu gốc + dữ liệu đang hiển thị (sau filter)
+  const [allReports, setAllReports] = useState<Report[] | null>(null);
+  const [reports, setReports] = useState<Report[] | null>(null);
+
+  // state khác
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [likes, setLikes] = useState<Like[] | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // delete mode
+  const [deleteMode, setDeleteMode] = useState(false);
+
+  const handleFilter = useCallback(
+    (type: string) => {
+      setFilterTitle(type);
+      const source = allReports ?? [];
+      const filtered = type === 'all' ? source : source.filter((r) => r.title === type);
+      setReports(filtered);
+    },
+    [allReports]
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      setLoading(true);
+      setError(null);
+
+      Promise.all([getAllPosts(), getAllUsers(), getAllLikes()])
+        .then(([postsData, usersData, likesData]) => {
+          if (!mounted) return;
+
+          setUsers(usersData || []);
+          setLikes(likesData || []);
+
+          // like count per post
+          const likeCountMap: Record<string, number> = {};
+          (likesData || []).forEach((lk: Like) => {
+            likeCountMap[lk.postId] = (likeCountMap[lk.postId] || 0) + 1;
+          });
+
+          // map Post -> Report
+          const reportsData: Report[] = (postsData || []).map((post: Post) => {
+            const user = (usersData || []).find((u: User) => u.id === post.authorId);
+            return {
+              id: post.id,
+              name: user?.name || 'Unknown User',
+              avatar: user?.avatar?.trim() ? user.avatar.trim() : DEFAULT_AVATAR,
+              status: post.published ? 'Solved' : 'Pending',
+              title: post.title,
+              location: post.location,
+              datetime: post.createdAt, // giữ ISO, format khi render
+              problem: post.problem,
+              description: post.description,
+              image: post.content,
+              createdAt: post.createdAt,
+              updatedAt: post.updatedAt,
+              likeCount: likeCountMap[post.id] || 0,
+            };
+          });
+
+          setAllReports(reportsData);
+          setReports(reportsData);
+        })
+        .catch((err) => {
+          console.error('Error fetching data:', err);
+          if (mounted) setError('Failed to load reports');
+        })
+        .finally(() => {
+          if (mounted) setLoading(false);
+        });
+
+      return () => {
+        mounted = false;
+      };
+    }, [])
+  );
+
+  // Xoá report
+  const confirmDelete = useCallback((id: string) => {
+    Alert.alert('Are you sure?', 'This will permanently delete the report.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deletePost(id);
+            setAllReports((prev) => (prev ?? []).filter((r) => r.id !== id));
+            setReports((prev) => (prev ?? []).filter((r) => r.id !== id));
+          } catch (e) {
+            console.error('Delete report failed:', e);
+          }
+        },
+      },
+    ]);
   }, []);
+
+  // ==== RENDER ====
 
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
-        <Text className="mt-2">Loading...</Text>
       </View>
     );
   }
 
-  const goToBuilding = (building: string, title: string) => {
-    router.push({
-      pathname: '/report/ReportDetail',
-      params: {
-        type: title,
-        name: building
-      },
-    });
-  };
-
-  const customButton = (building: string, title: string, num: number ) => {
-    return(
-      <>
-        <TouchableOpacity className='p-4 py-8 w-0.95 mt-3 mr-3 bg-green-50 rounded-lg shadow items-center justify-center'>
-          <Text className='font-medium text-xl'>{building}</Text>
-        </TouchableOpacity>
-        {num > 0 ? (
-          <View className='absolute top-0 right-0 bg-red-600 w-6 aspect-square rounded-full items-center justify-center'>
-            <Text className='text-white font-semibold'>{num}</Text>
-          </View>
-        ) : (<></>)}
-      </>
-    );
-  };
-
   return (
-    <ScrollView 
-    className="p-4 bg-white flex-1"
-    contentContainerStyle={{paddingBottom: 20}}
-    showsVerticalScrollIndicator={false}>
-      {/* TODO: WATER REPORT */}
-      <View className='flex-row items-center mb-2'>
-        <Text className='font-semibold text-3xl mr-2'>Water</Text>
-        <Image source={require('../../assets/images/drop.png')} style={{width: 36, height: 36}}/>
-      </View>
-      <View className='flex-col'>
-        <View className='flex-row max-w-full mb-2'>
-          <View className='flex w-1/2 mr-3'>
-            {customButton('Building 1', 'water', 2)}
-          </View>
-          <View className='flex w-1/2'>
-            {customButton('Building 2', 'water', 3)}
-          </View>
+    <View className="bg-white w-full h-full justify-center flex-1 relative">
+      {/* Header: Filter + Actions */}
+      <View className="flex-row items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100 bg-white">
+        {/* Filter tabs */}
+        <View className="flex-row">
+          {['all', 'water', 'electric', 'air'].map((type) => (
+            <TouchableOpacity key={type} onPress={() => handleFilter(type)} className="mr-4">
+              <Text className={filterTitle === type ? 'text-blue-600 font-bold' : 'text-gray-500'}>
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-        <View className='flex-row max-w-full'>
-          <View className='flex w-1/2 mr-3'>
-            {customButton('Building 8', 'water', 0)}
-          </View>
-          <View className='flex w-1/2'>
-            {customButton('Sports Halls', 'water', 1)}
-          </View>
+
+        {/* Add + Delete mode */}
+        <View className="flex-row">
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/report/writeReport' })}
+            className="p-2 rounded-full bg-gray-100 mr-2"
+          >
+            <MaterialIcons name="add" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setDeleteMode((v) => !v)}
+            className="p-2 rounded-full bg-gray-100"
+          >
+            <MaterialIcons name={deleteMode ? 'close' : 'delete'} size={24} color="black" />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* TODO: ELECTRIC REPORT */}
-      <View className='flex-row items-center mt-6 mb-2'>
-        <Text className='font-semibold text-3xl mr-2'>Electric</Text>
-        <Image source={require('../../assets/images/lightning.png')} style={{width: 36, height: 36}}/>
-      </View>
-      <View className='flex-col'>
-        <View className='flex-row max-w-full mb-2'>
-          <View className='flex w-1/2 mr-3'>
-            {customButton('Building 1', 'water', 0)}
-          </View>
-          <View className='flex w-1/2'>
-            {customButton('Building 2', 'water', 1)}
-          </View>
-        </View>
-        <View className='flex-row max-w-full'>
-          <View className='flex w-1/2 mr-3'>
-            {customButton('Building 8', 'water', 0)}
-          </View>
-          <View className='flex w-1/2'>
-            {customButton('Sports Halls', 'water', 0)}
-          </View>
-        </View>
-      </View>
+      {/* List: chỉ avatar + name + datetime + problem */}
+      <View className="flex-1">
+        <FlatList
+          data={reports ?? []}
+          keyExtractor={(item) => item.id}
+          className="p-4"
+          ListEmptyComponent={
+            <View className="flex-1 justify-center items-center py-10">
+              <Text>There is no Report set up</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => {
+                if (deleteMode) return; // đang delete mode thì không navigate
+                router.push({
+                  pathname: '/report/ReportDetail',
+                  params: { report: JSON.stringify(item) },
+                });
+              }}
+            >
+              <View className="flex-row bg-white rounded-sm shadow p-4 mb-4 items-center">
+                {deleteMode && (
+                  <TouchableOpacity
+                    onPress={() => confirmDelete(item.id)}
+                    className="w-6 h-6 rounded-full bg-red-500 items-center justify-center mr-3"
+                  >
+                    <Text className="text-white font-bold">-</Text>
+                  </TouchableOpacity>
+                )}
 
+                <Image source={{ uri: item.avatar || DEFAULT_AVATAR }} className="w-14 h-14 rounded-full mr-4" />
 
-      <View className='flex-row items-center mt-6 mb-2'>
-        <Text className='font-semibold text-3xl mr-2'>Air Quality</Text>
-        <Image source={require('../../assets/images/wind.png')} style={{width: 36, height: 36}}/>
+                <View className="flex-1">
+                  <Text className="text-lg font-medium">{item.name}</Text>
+                  <Text className="italic text-sm text-gray-500">{safeFormatDate(item.datetime)}</Text>
+                  <Text className="text-sm mt-1">{item.problem}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
       </View>
-      <View className='flex-col'>
-        <View className='flex-row max-w-full mb-2'>
-          <View className='flex w-1/2 mr-3'>
-            {customButton('Building 1', 'water', 2)}
-          </View>
-          <View className='flex w-1/2'>
-            {customButton('Building 2', 'water', 1)}
-          </View>
-        </View>
-        <View className='flex-row max-w-full'>
-          <View className='flex w-1/2 mr-3'>
-            {customButton('Building 8', 'water', 1)}
-          </View>
-          <View className='flex w-1/2'>
-            {customButton('Sports Halls', 'water', 4)}
-          </View>
-        </View>
-      </View>
-
-
-    </ScrollView>
+    </View>
   );
-}
+};
+
+export default ReportForm;

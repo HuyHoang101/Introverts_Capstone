@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Pressable, Image, TouchableOpacity, ImageBackground } from 'react-native';
 import React from 'react';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 export default function HomeScreen() {
   return (
@@ -21,7 +22,7 @@ export default function HomeScreen() {
           <Image source={require('../../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
           <Text className='font-extrabold text-5xl text-white'>GreenSync</Text>
         </View>
-        <Feather name="bell" size={36} color="#333" />
+        <Feather name="bell" size={36} color="white" />
         <View className='flex bg-red-500 absolute right-0 top-0 w-4 h-4 rounded-full items-center justify-center'>
           <Text className='text-white font-semibold text-xs'>3</Text>
         </View>
@@ -42,7 +43,7 @@ export default function HomeScreen() {
       {/* Personal Records */}
       <View className="bg-white rounded-xl p-4 shadow mb-4">
         <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-lg font-bold">Personal records</Text>
+          <Text className="text-lg font-bold text-black">Personal records</Text>
           <Pressable>
             <Text className="text-blue-600 font-medium">add more →</Text>
           </Pressable>
@@ -68,9 +69,11 @@ export default function HomeScreen() {
       {/* Booking Room */}
       <View className="bg-gray-200 rounded-xl p-4 shadow">
         <View className='flex-row items-center justify-between mb-2'>
-          <Text className="text-lg font-bold">BOOKING ROOM</Text>
-          <TouchableOpacity>
-            <Text className='font-semibold'> Read more →</Text>
+          <Text className="text-lg font-bold text-black">BOOKING ROOM</Text>
+          <TouchableOpacity
+            onPress={() => {router.push({ pathname: './home/bookingLab' })}}
+          >
+            <Text className='font-semibold text-gray-700'> Read more →</Text>
           </TouchableOpacity>
         </View>
         <View className="bg-white rounded-xl p-3 shadow-sm w-full justify-start">

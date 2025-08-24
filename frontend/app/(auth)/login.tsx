@@ -53,7 +53,7 @@ export default function LoginScreen() {
                         transition={{ delay: 300, duration: 1000 }}
 
                     >
-                        <Text className="text-3xl font-bold mb-6">Welcome back</Text>
+                        <Text className="text-3xl font-bold text-black mb-6">Welcome back</Text>
                     
                     </MotiView>
 
@@ -63,14 +63,15 @@ export default function LoginScreen() {
                         transition={{ delay: 450, duration: 1000 }}
                         className='w-full'
                     >
-                        <Text className="mb-1">Email</Text>
+                        <Text className="mb-1 text-black">Email</Text>
                         <TextInput
                             value={email}
                             onChangeText={setEmail}
                             placeholder="Email"
+                            placeholderTextColor="#9ca3af"
                             autoCapitalize="none"
                             keyboardType="email-address"
-                            className="border border-gray-400 p-2 mb-4 w-full rounded"
+                            className="border border-gray-400 p-2 mb-4 w-full rounded text-black"
                         />
                     </MotiView>
 
@@ -80,21 +81,21 @@ export default function LoginScreen() {
                         transition={{ delay: 600, duration: 1000 }}
                         className='w-full'
                     >
-                        <Text className="mb-1">Password</Text>
+                        <Text className="mb-1 text-black">Password</Text>
                         <View className='w-full relative'>
                             <TextInput
                                 value={password}
                                 onChangeText={setPassword}
                                 placeholder="Password"
+                                placeholderTextColor="#9ca3af"
                                 secureTextEntry={!showPassword}
-                                className="border border-gray-400 p-2 mb-1 w-full rounded"
+                                className="border border-gray-400 p-2 mb-1 w-full rounded text-black"
                             />
-                            <TouchableOpacity className="absolute right-2 top-0" onPress={() => setShowPassword(!showPassword)}>
+                            <TouchableOpacity className="absolute right-2 top-3" onPress={() => setShowPassword(!showPassword)}>
                                 <MaterialIcons
-                                    name={showPassword ? "visibility-off" : "visibility"}
+                                    name={!showPassword ? "visibility-off" : "visibility"}
                                     size={20}
                                     color="gray"
-                                    className="absolute right-0 top-2"
                                 />
                             </TouchableOpacity>
                         </View>
@@ -113,7 +114,7 @@ export default function LoginScreen() {
                                     <MaterialIcons className='absolute top-0 left-0' name="check" size={24} color="gray" />
                                 )}
                             </TouchableOpacity>
-                            <Text className="text-base ml-2">Remember me</Text>
+                            <Text className="text-black ml-2">Remember me</Text>
                         </View>
                     </MotiView>
                     
@@ -127,7 +128,7 @@ export default function LoginScreen() {
                                 onPress={handleLogin}
                                 className="bg-green-500 py-3 rounded w-1/3 items-center mt-2"
                             >
-                                <Text className="text-white font-bold">LOGIN</Text>
+                                <Text className="text-white font-bold ">LOGIN</Text>
                             </TouchableOpacity>
                         </View>
                     </MotiView>
@@ -144,7 +145,7 @@ export default function LoginScreen() {
                             <View className="border-t border-gray-400 flex-1" />
                         </View>
 
-                        <View className="flex-row justify-center mt-4 w-full">
+                        <View className="flex-row justify-center mt-4 w-full text-black">
                             <Text>Don't have an account? </Text>
                             <TouchableOpacity onPress={() => router.replace('/(auth)/register')}>
                                 <Text className="text-blue-500">Register</Text>

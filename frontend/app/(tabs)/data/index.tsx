@@ -270,10 +270,10 @@ export default function Index() {
               className="flex-1 mr-1 bg-white shadow rounded-lg border border-gray-200 items-center justify-between self-stretch" 
               onPress={handleWaterCardPress}
             >
-              <Text className="text-xl font-semibold mt-4">Water</Text>
+              <Text className="text-xl font-semibold mt-4 text-black">Water</Text>
               {water && water.length > 1 ?(
                 <>
-                  <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">{water[0].total.toLocaleString('vi-VN')} L</Text>
+                  <Text className="w-full pl-2 mt-3 font-bold text-3xl text-black">{water[0].total.toLocaleString('vi-VN')} L</Text>
                   <View className="w-full p-2 mb-3">
                     <View className="w-full">
                       {(() => {
@@ -282,7 +282,7 @@ export default function Index() {
 
                         return (
                           <>
-                            <Text className="mb-1 text-sm font-semibold text-gray-700">
+                            <Text className="mb-1 text-sm font-bold text-gray-700">
                               Used: {usedPercent}%
                             </Text>
                             <View className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -298,7 +298,7 @@ export default function Index() {
                   </View>
                 </>
               ) : (
-                <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">Underfied</Text>)}
+                <Text className="w-full pl-2 mt-3 font-extrabold text-2xl text-black">Underfied</Text>)}
             </TouchableOpacity>
     
             {/* Electric Card */}
@@ -306,10 +306,10 @@ export default function Index() {
               className="flex-1 ml-1 bg-white shadow rounded-lg border border-gray-200 items-center justify-between self-stretch" 
               onPress={handleElectricCardPress}
             >
-              <Text className="text-xl font-semibold mt-4">Electric</Text>
+              <Text className="text-xl font-bold mt-4 text-black">Electric</Text>
               {electric && electric.length > 1 ? (
                 <>
-                  <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">
+                  <Text className="w-full pl-2 mt-3 font-extrabold text-3xl text-black">
                     {electric[0].total.toLocaleString('vi-VN')} kWh
                   </Text>
 
@@ -321,7 +321,7 @@ export default function Index() {
 
                         return (
                           <>
-                            <Text className="mb-1 text-sm font-semibold text-gray-700">
+                            <Text className="mb-1 text-sm font-bold text-gray-700">
                               Used: {usedPercent}%
                             </Text>
                             <View className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -337,7 +337,7 @@ export default function Index() {
                   </View>
                 </>
               ) : (
-                <Text className="w-full pl-2 mt-3 font-extrabold text-3xl">Underfied</Text>)}
+                <Text className="w-full pl-2 mt-3 font-extrabold text-2xl text-black">Underfied</Text>)}
             </TouchableOpacity>
           </View>
     
@@ -347,7 +347,7 @@ export default function Index() {
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-gray-800">💧 Monthly Water Usage</Text>
               <TouchableOpacity onPress={handleWaterList}>
-                <Text className="text-sm font-semibold">See more →</Text>
+                <Text className="text-sm font-semibold text-black">See more →</Text>
               </TouchableOpacity>
             </View>
     
@@ -355,7 +355,7 @@ export default function Index() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ height: 180, width: screenWidth * 1.4 }}>
               {waterData?.datasets[0]?.data?.length === 0 && (
-                <Text className='flex-1 justify-center items-center'>Loading data...</Text>
+                <Text className='flex-1 justify-center items-center text-black'>Loading data...</Text>
               )}
               {waterData?.datasets[0]?.data?.length > 0 && (
                 <BarChart
@@ -379,14 +379,14 @@ export default function Index() {
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-bold text-gray-800">⚡️ Monthly Electric Consumption</Text>
               <TouchableOpacity onPress={handleElectricList}>
-                <Text className="text-sm font-semibold">See more →</Text>
+                <Text className="text-sm font-semibold text-black">See more →</Text>
               </TouchableOpacity>
             </View>
     
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ height: 180, width: screenWidth * 1.4 }}>
               {electricData?.datasets[0]?.data?.length === 0 && (
-                <Text className='flex-1 justify-center items-center'>Loading data...</Text>
+                <Text className='flex-1 justify-center items-center text-black'>Loading data...</Text>
               )}
               {electricData?.datasets[0]?.data?.length > 0 && (
                 <LineChart
@@ -416,7 +416,7 @@ export default function Index() {
           <Text className="text-3xl font-bold text-white p-4">Daily Air Quality</Text>
           <View className='flex-col justify-center items-center bg-white rounded-lg shadow-md border border-gray-200 p-2 m-2 max-w-full'>
             <View className="flex-row justify-between items-center mb-4 w-full">
-              <Text className='text-lg font-bold'>Danger Score</Text>
+              <Text className='text-lg font-bold text-black'>Danger Score</Text>
               <TouchableOpacity onPress={() => router.push({
                 pathname: '/data/AirDetail', 
                 params: {
@@ -427,7 +427,7 @@ export default function Index() {
                   ),
                 }
               })} >
-                <Text className="text-sm font-semibold">See more →</Text>
+                <Text className="text-sm font-semibold text-black">See more →</Text>
               </TouchableOpacity>
             </View>
             <View className='flex-row justify-start items-start w-full mt-2'>
@@ -479,7 +479,7 @@ export default function Index() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={{ height: 180, width: screenWidth * 1.4 }}>
                 {airData?.datasets[0]?.data?.length === 0 && (
-                  <Text className='flex-1 justify-center items-center'>Loading data...</Text>
+                  <Text className='flex-1 justify-center items-center text-black'>Loading data...</Text>
                 )}
                 {airData?.datasets[0]?.data?.length > 0 && (
                   <LineChart

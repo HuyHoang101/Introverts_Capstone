@@ -179,7 +179,7 @@ export default function Profile() {
                 {/* Left: About Section */}
                 <View className="w-full">
                     <View className="bg-white rounded-2xl p-4 shadow-sm">
-                    <Text className="text-lg font-bold mb-2">Introduction</Text>
+                    <Text className="text-lg font-bold mb-2 text-black">Introduction</Text>
                     <Text className="text-base text-gray-700">📧 Email: {user?.email ? user.email : "example@gmail.com"}</Text>
                     <Text className="text-base text-gray-700">🎂 Birth: {user?.birthDate ? user.birthDate : "01/01/1970"}</Text>
                     <Text className="text-base text-gray-700">📞 Phone: {user?.phone ? user.phone : ""}</Text>
