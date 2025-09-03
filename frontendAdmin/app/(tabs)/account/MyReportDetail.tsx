@@ -210,19 +210,7 @@ export default function ReportDetail() {
           contentContainerStyle={{ paddingBottom: 96 }}
           ListHeaderComponent={
             <View className="flex flex-col p-4 shadow-sm bg-white mb-4">
-              <View className="flex flex-row items-center justify-between w-full mb-5 px-4">
-                {/* Nút Close */}
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                  className="p-2"
-                >
-                  <MaterialIcons name="close" size={24} color="black" />
-                </TouchableOpacity>
-                {/* Title */}
-                <Text className="font-semibold text-black text-lg p-2">Report Detail</Text>
-                {/* Chỗ trống để giữ cân đối */}
-                <View className="w-10" />
-              </View>
+              
               <View className="flex flex-row justify-between items-start">
                 <View className="flex flex-row">
                   <Image source={{ uri: reportData?.avatar || DEFAULT_AVATAR }} className="w-14 h-14 rounded-full mr-4" />

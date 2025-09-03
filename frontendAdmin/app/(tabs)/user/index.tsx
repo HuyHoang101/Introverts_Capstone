@@ -194,7 +194,9 @@ export default function UserListScreen() {
   };
 
   // Filter + Pagination
-  const filteredUsers = allUsers.filter(
+  const filteredUsers = allUsers
+  .filter((u) => u.role !== "ADMIN") // loại bỏ ADMIN
+  .filter(
     (u) =>
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase()) ||

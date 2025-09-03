@@ -106,14 +106,24 @@ useEffect(() => {
   return (
     <ScrollView className="flex-1 bg-white" contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 20 }}>
       <View className="flex flex-col bg-white rounded-sm p-4 justify-start w-full">
-        <TouchableOpacity onPress={() => router.back()} className="mr-2">
-          <MaterialIcons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
+        <View className="flex flex-row items-center justify-between w-full mb-2">
+          {/* Nút Close */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="p-2"
+          >
+            <MaterialIcons name="close" size={24} color="black" />
+          </TouchableOpacity>
+          {/* Title */}
+          <Text className="font-semibold text-black text-lg p-2">Create Report</Text>
+          {/* Chỗ trống để giữ cân đối */}
+          <View className="w-10" />
+        </View>
 
-        <Text className="text-3xl font-semibold mb-6">Report</Text>
+        <Text className="text-3xl text-black font-semibold mb-6">Report</Text>
 
         <View className="flex flex-col mb-3 w-full">
-          <Text className="mr-2">Problem:</Text>
+          <Text className="mr-2 text-black">Problem:</Text>
           <TextInput
             value={problem}
             onChangeText={setProblem}
@@ -124,7 +134,7 @@ useEffect(() => {
         </View>
 
         <View className="flex flex-col mb-3 w-full">
-          <Text className="mr-2">Location:</Text>
+          <Text className="mr-2 text-black">Location:</Text>
           <TextInput
             value={location}
             onChangeText={setLocation}
@@ -149,7 +159,7 @@ useEffect(() => {
         </View>
 
         <View className="flex flex-col mb-3 w-full">
-          <Text className="mr-2 mt-2">Description:</Text>
+          <Text className="mr-2 mt-2 text-black">Description:</Text>
           <TextInput
             value={description}
             onChangeText={setDescription}

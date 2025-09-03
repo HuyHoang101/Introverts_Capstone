@@ -35,6 +35,8 @@ model User {
   likes     like[]
 
   BookingTable BookingTable[]
+
+  Notification Notification[]
 }
 
 model Post {
@@ -136,6 +138,8 @@ model BookingTable {
   table       Table    @relation(fields: [tableId], references: [id])
   userId      String
   user        User     @relation(fields: [userId], references: [id])
+  slotId	    Int
+  dateYMD     String
   startTime   DateTime
   endTime     DateTime
   createdAt   DateTime @default(now())
@@ -156,3 +160,13 @@ model Device {
   updatedAt   DateTime @updatedAt
 }
 
+model Notification {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  isRead      Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

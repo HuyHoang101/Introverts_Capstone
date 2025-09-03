@@ -31,7 +31,7 @@ export default function Index() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/bg_main.png")}
+      source={require("@/assets/images/bg_main.png")}
       className="flex-1"
       resizeMode="stretch"
     >
@@ -48,21 +48,21 @@ export default function Index() {
             onPress={() => router.push("/data/airList")}
           >
             <Text className="font-semibold text-2xl mb-3">Pollution</Text>
-            <Image source={require("../../assets/images/wind.png")} style={{ height: 64, width: 64 }} />
+            <Image source={require("@/assets/images/wind.png")} style={{ height: 64, width: 64 }} />
           </TouchableOpacity>
           <TouchableOpacity
             className="flex-col bg-white rounded-md shadow p-4 w-1/3 items-center ml-2 mr-2"
             onPress={() => router.push("/data/waterList")}
           >
             <Text className="font-semibold text-2xl mb-3">Water</Text>
-            <Image source={require("../../assets/images/drop.png")} style={{ height: 64, width: 64 }} />
+            <Image source={require("@/assets/images/drop.png")} style={{ height: 64, width: 64 }} />
           </TouchableOpacity>
           <TouchableOpacity
             className="flex-col bg-white rounded-md shadow p-4 w-1/3 items-center"
             onPress={() => router.push("/data/electricList")}
           >
             <Text className="font-semibold text-2xl mb-3">Electric</Text>
-            <Image source={require("../../assets/images/lightning.png")} style={{ height: 64, width: 64 }} />
+            <Image source={require("@/assets/images/lightning.png")} style={{ height: 64, width: 64 }} />
           </TouchableOpacity>
         </View>
 

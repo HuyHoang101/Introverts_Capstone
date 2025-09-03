@@ -35,3 +35,14 @@ export const updateBooking = async (id: string, data: any) => {
 export const deleteBooking = async (id: string) => {
   return request(`/${id}`, { method: 'DELETE' });
 };
+
+export const isTableAvailable = async (tableId: string, startTime: string, endTime: string) => {
+  const bookings = await request(`/table/${tableId}`, { method: 'GET' });
+
+  // Check overlap booking
+  return !bookings.some(
+    (b: any) =>
+      (new Date(startTime) < new Date(b.endTime)) &&
+      (new Date(endTime) > new Date(b.startTime))
+  );
+};

@@ -5,6 +5,7 @@ import {
     updateUser,
     deleteUser
   } from '../service/user.service.js';
+import bcrypt from "bcryptjs";
   
   export const getUsers = async (req, res) => {
     const users = await getAllUsers();
@@ -18,10 +19,26 @@ import {
   };
   
   export const addUser = async (req, res) => {
-    const { email, name, role } = req.body;
     try {
-      const user = await createUser({ email, name, role });
-      res.status(201).json(user);
+      const { email, name, role, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 8);
+
+      const user = await createUser({
+        email,
+        name,
+        role: role || "USER",
+        password: hashedPassword,
+      });
+
+      // Remove password from response
+      const { password: _, ...safeUser } = user;
+
+      res.status(201).json(safeUser);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }

@@ -12,6 +12,7 @@ import tableRoutes from './src/routes/table.route.js';
 import deviceRoutes from './src/routes/device.route.js';
 import bookingRoutes from './src/routes/bookingTable.route.js';
 import authRoutes from './src/auth/auth.route.js';
+import notificationRoutes from './src/routes/notification.route.js';
 import cors from 'cors';
 
 
@@ -39,6 +40,7 @@ app.use('/api/tables', tableRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 app.listen(5000, '0.0.0.0', () => {

@@ -14,21 +14,21 @@ type WaterData = {
 
 export default function WaterDetail() {
   const router = useRouter();
-  const { data } = useLocalSearchParams();
+  const { item } = useLocalSearchParams<{ item?: string }>();
   const [record, setRecord] = useState<WaterData | null>(null);
   const [average, setAverage] = useState<number | null>(null);
 
   useEffect(() => {
-    if (typeof data === "string") {
+    if (typeof item === "string") {
       try {
-        const parsed = JSON.parse(data) as WaterData;
+        const parsed = JSON.parse(item) as WaterData;
         setRecord(parsed);
         setAverage(parsed.total / 30);
       } catch (err) {
         console.error("Invalid data format from params", err);
       }
     }
-  }, [data]);
+  }, [item]);
 
   const formatNumber = (num: number) =>
     new Intl.NumberFormat("en-US", {

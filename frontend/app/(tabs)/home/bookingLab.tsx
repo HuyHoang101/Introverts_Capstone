@@ -1,5 +1,6 @@
+// Home.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { ImageBackground, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
@@ -11,10 +12,10 @@ import SlotSingle from '@/component/SlotSingle';
 import Toolbar from '@/component/Toolbar';
 
 import { SLOTS, SlotId } from '@/constants/slots';
-import type { Booking } from '@/utils/store';
-import { useStore } from '@/utils/store';
 import { toYMD } from '@/utils/time';
 import { MaterialIcons } from '@expo/vector-icons';
+import { getUserInfo } from '@/service/authService';
+import { getAllBookings } from '@/service/bookingTableService';
 
 export default function Home() {
   const router = useRouter();
@@ -24,37 +25,50 @@ export default function Home() {
   const [slotId, setSlotId] = useState<SlotId>(0);
   const slot = SLOTS.find((s) => s.id === slotId)!;
 
-  const {
-    garbageCollect,
-    lastSystemCancel,
-    clearLastSystemCancel,
-    bookings,
-    userId,
-    hasAnyBookingOnDate,
-  } = useStore();
+  // refreshKey để buộc các component con refetch khi thay đổi booking
+  const [refreshKey, setRefreshKey] = useState(0);
+  const doRefresh = () => setRefreshKey(k => k + 1);
+
+  // My bookings (fetched from backend)
+  const [myBookings, setMyBookings] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const t = setInterval(() => garbageCollect(), 30_000);
-    return () => clearInterval(t);
-  }, [garbageCollect]);
+    (async () => {
+      try {
+        const u = await getUserInfo();
+        setUser(u);
+      } catch (e) {
+        setUser(null);
+      }
+    })();
+  }, []);
 
+  // fetch my bookings when user or refreshKey or selectedDateYMD changes
   useEffect(() => {
-    if (!lastSystemCancel) return;
-    Toast.show({
-      type: 'error',
-      text1: 'Booking cancelled due to late check-in',
-      text2: "You can’t book another slot today.",
-      topOffset: 70,
-      visibilityTime: 5000,
-    });
-    clearLastSystemCancel();
-  }, [lastSystemCancel, clearLastSystemCancel]);
+    if (!user) {
+      setMyBookings([]);
+      return;
+    }
+    let mounted = true;
+    (async () => {
+      try {
+        const all = await getAllBookings();
+        if (!mounted) return;
+        const mine = (all || []).filter((b: any) => b.userId === user.id);
+        setMyBookings(mine);
+      } catch (e) {
+        setMyBookings([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user, refreshKey]);
 
-  const myBookings = bookings
-    .filter((b: Booking) => b.userId === userId)
-    .sort((a: Booking, b: Booking) => (a.dateYMD + a.slotId).localeCompare(b.dateYMD + b.slotId));
-
-  const quotaUsed = hasAnyBookingOnDate(userId, selectedDateYMD);
+  // quota: whether user already has booking on selectedDateYMD
+  const quotaUsed = (() => {
+    if (!user) return false;
+    return myBookings.some(b => b.dateYMD === selectedDateYMD);
+  })();
 
   // Locker modal state
   const [openLocker, setOpenLocker] = useState(false);
@@ -64,7 +78,7 @@ export default function Home() {
     setOpenLocker(true);
   };
 
-  // sticky header: Toolbar + legend + banner
+  // sticky header indices
   const stickyHeaderIndices = [2];
 
   return (
@@ -74,7 +88,7 @@ export default function Home() {
       resizeMode="stretch"
     >
       <ScrollView contentContainerStyle={styles.container} stickyHeaderIndices={stickyHeaderIndices}>
-        {/* Hero header đơn giản */}
+        {/* Hero header */}
         <View style={styles.hero}>
           <View style={styles.heroHeader}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -89,7 +103,7 @@ export default function Home() {
 
         <View style={{ height: 4 }} />
 
-        {/* Sticky toolbar (ngày + giờ) + legend + banner */}
+        {/* Toolbar + legend */}
         <View style={styles.stickyBlock}>
           <Toolbar
             dateYMD={selectedDateYMD}
@@ -105,7 +119,7 @@ export default function Home() {
           <LegendBar />
         </View>
 
-        {/* BẢN ĐỒ: cột locker bên trái + grid bàn bên phải */}
+        {/* Map: locker + desk grid */}
         <View style={{ marginTop: 12, flexDirection: 'row' }}>
           <LockerColumn onPressLocker={onPressLocker} />
           <View style={{ flex: 1 }}>
@@ -114,21 +128,25 @@ export default function Home() {
               onSelect={setSelectedDesk}
               dateYMD={selectedDateYMD}
               slotId={slotId}
+              refreshKey={refreshKey}
             />
           </View>
         </View>
 
-        {/* Chi tiết slot được chọn */}
+        {/* Slot detail */}
         {selectedDesk && (
           <View style={{ marginTop: 16 }}>
             <Text style={styles.h2}>
               Table {selectedDesk} — {selectedDateYMD}
             </Text>
+
             <SlotSingle
               deskId={selectedDesk}
               dateYMD={selectedDateYMD}
               slotId={slotId}
               label={slot.label}
+              quotaUsed={quotaUsed}
+              onRefresh={doRefresh}
             />
           </View>
         )}
@@ -140,20 +158,19 @@ export default function Home() {
             <Text style={{ color: '#FFF' }}>No bookings yet.</Text>
           ) : (
             <View style={{ gap: 8 }}>
-              {myBookings.map((b: Booking, i: number) => (
+              {myBookings.map((b: any, i: number) => (
                 <Pressable
-                  key={`${b.dateYMD}-${b.deskId}-${b.slotId}-${i}`}
+                  key={`${b.dateYMD}-${b.tableId}-${b.startTime}-${i}`}
                   onPress={() => {
                     setSelectedDateYMD(b.dateYMD);
-                    setSelectedDesk(b.deskId);
+                    setSelectedDesk(Number(b.tableId));
                     setSlotId(b.slotId);
                   }}
                   style={styles.myRow}
                 >
-                  <Text style={styles.myTitle}>Table {b.deskId} • Day {b.dateYMD}</Text>
+                  <Text style={styles.myTitle}>Table {b.tableId} • Day {b.dateYMD}</Text>
                   <Text style={styles.mySub}>
-                    {SLOTS.find((s) => s.id === b.slotId)?.label} •{' '}
-                    {b.status === 'checked_in' ? 'In use' : 'Booked'}
+                    {SLOTS.find((s) => s.id === b.slotId)?.label} • {b.status === 'checked_in' ? 'In use' : 'Booked'}
                   </Text>
                 </Pressable>
               ))}
@@ -162,7 +179,7 @@ export default function Home() {
         </View>
       </ScrollView>
 
-      {/* Modal locker 3 tầng A/B/C */}
+      {/* Locker modal */}
       <LockerModal
         visible={openLocker}
         locker={lockerNum}

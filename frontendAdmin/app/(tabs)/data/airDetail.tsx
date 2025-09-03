@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import CircularProgress from '@/component/CircularProgress';
-import CookieList from '@/component/PollurtantList';
+import PollutantList from '@/component/PollurtantList';
 import { calculateDangerScore } from '@/utils/dangerScore';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -19,8 +19,8 @@ export default function Mission() {
   const [dangerScore, setDangerScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { data } = useLocalSearchParams();
-  const parsedData = typeof data === 'string' ? JSON.parse(data) : {};
+  const { item } = useLocalSearchParams<{ item?: string }>();
+  const parsedData = typeof item === 'string' ? JSON.parse(item) : {};
   // const [pollutants, setPollutants] = useState<PollutantData>({
   //   pm25: 0,
   //   pm10: 0,
@@ -48,7 +48,7 @@ export default function Mission() {
   // },[]);
   useEffect(() => {
     try {
-      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      const parsedData = typeof item === 'string' ? JSON.parse(item) : item;
 
       if (!parsedData || typeof parsedData.pm25 === 'undefined') {
         throw new Error('Invalid data received');
@@ -64,7 +64,7 @@ export default function Mission() {
       setError(err.message || 'Unknown error');
       setLoading(false);
     }
-  }, [data]);
+  }, [item]);
 
   const handleRetry = () => {
     setError(null);
@@ -101,7 +101,7 @@ export default function Mission() {
           </View>
           
           <ScrollView className='flex-1' showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 8}}>
-            <CookieList 
+            <PollutantList 
               pm25={parsedData.pm25}
               pm10={parsedData.pm10}
               no2={parsedData.no2}

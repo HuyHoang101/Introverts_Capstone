@@ -3,13 +3,21 @@ import * as bookingService from '../service/bookingTable.service.js';
 
 export const createBooking = async (req, res) => {
   try {
-    const booking = await bookingService.createBooking(req.body);
+    const { tableId, userId, slotId, dateYMD, startTime, endTime } = req.body;
+
+    const booking = await bookingService.createBooking({
+      tableId,
+      userId,
+      slotId,
+      dateYMD,
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+    });
+
     res.status(201).json(booking);
-  } catch (err) {
-    if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'Booking conflict: time slot already reserved.' });
-    }
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("❌ Create booking error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 

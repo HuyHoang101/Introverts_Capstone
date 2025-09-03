@@ -23,7 +23,7 @@ type ElectricData = {
 };
 
 export default function ElectricDetail() {
-  const { data } = useLocalSearchParams();
+  const { item } = useLocalSearchParams<{ item?: string }>();
   const router = useRouter();
 
   const [electricData, setElectricData] = useState<ElectricData | null>(null);
@@ -32,7 +32,7 @@ export default function ElectricDetail() {
   useEffect(() => {
     try {
       const parsed =
-        typeof data === "string" ? JSON.parse(data) : (data as unknown as ElectricData);
+        typeof item === "string" ? JSON.parse(item) : (item as unknown as ElectricData);
 
       if (
         !parsed ||
@@ -51,7 +51,7 @@ export default function ElectricDetail() {
       console.error(err);
       setLoading(false);
     }
-  }, [data]);
+  }, [item]);
 
   if (loading || !electricData) {
     return (

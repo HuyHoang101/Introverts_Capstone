@@ -53,8 +53,8 @@ function formatDate(datetime?: string) {
 
 export default function ReportDetail() {
   const router = useRouter();
-  const { report } = useLocalSearchParams();
-  const reportData = report ? JSON.parse(report as string) : null;
+  const { item } = useLocalSearchParams();
+  const reportData = item ? JSON.parse(item as string) : null;
 
   const [user, setUser] = useState<User | null>(null);
 
@@ -323,7 +323,7 @@ export default function ReportDetail() {
               )}
             </TouchableOpacity>
           </View>
-
+ 
           {!!error && <Text className="text-red-500 mt-1 px-1">{error}</Text>}
         </View>
       </View>
