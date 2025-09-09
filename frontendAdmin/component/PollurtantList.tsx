@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import { View, Text, Animated, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, Text, Animated, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
 import AirQualityComparisonCard from './AirQualityComparisonCard';
 
 type PollutantKey = 'PM2.5' | 'PM10' | 'NO₂' | 'O₃' | 'CO';
@@ -186,18 +186,23 @@ const PollutantList: React.FC<PollutantListProps> = ({ pm25, pm10, no2, o3, co }
         transparent
         onRequestClose={() => setShowComparisonCard(false)}
       >
-        <View className="flex-1 justify-center items-center bg-black/70 p-4">
-          <View className="w-full max-w-md bg-white rounded-2xl p-6">
-            <AirQualityComparisonCard pollutants={pollutants} />
-            <TouchableOpacity 
-              className="mt-6 bg-primary py-3 rounded-full"
-              onPress={() => setShowComparisonCard(false)}
-            >
-              <Text className="text-center text font-bold text-lg">
-                Close
-              </Text>
-            </TouchableOpacity>
-          </View>
+        <View className="flex-1 bg-black/70 p-4 justify-center">
+          <ScrollView 
+            contentContainerStyle={{ paddingBottom: 40 }} // tạo khoảng trống cho nút
+            showsVerticalScrollIndicator={false}
+          >
+            <View className="w-full max-w-md bg-white rounded-2xl p-6 mx-auto">
+              <AirQualityComparisonCard pollutants={pollutants} />
+              <TouchableOpacity 
+                className="mt-6 bg-primary py-3 rounded-full"
+                onPress={() => setShowComparisonCard(false)}
+              >
+                <Text className="text-center font-bold text-lg text-white bg-green-500 rounded-lg p-4 shadow">
+                  Close
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>

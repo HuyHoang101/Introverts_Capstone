@@ -1,157 +1,93 @@
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Image } from 'react-native';
-import React from 'react';
-import { useState } from 'react';
-import { useUser } from "../../../contexts/UserContext"; // 👈 Thêm dòng này
+import React, { useState } from "react";
+import { View, TextInput, Alert, Text, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import { getUserInfo } from "@/service/authService";
+import { requestVerification } from "@/service/userService";
+import * as SecureStore from "expo-secure-store";
 
-const settingsOptions = ["Change Username", "Change Avatar", "Change Password"];
-
-export default function Settings() {
-  const { username, setUsername, avatar, setAvatar } = useUser(); // 👈 Dùng context
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentModal, setCurrentModal] = useState<null | string>(null);
-
-  // State tạm để edit
-  const [draftUsername, setDraftUsername] = useState(username);
-  const [draftAvatar, setDraftAvatar] = useState(avatar);
-
-  // Password fields
-  const [oldPassword, setOldPassword] = useState("");
+export default function ChangePasswordScreen() {
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const TEMP_PASSWORD = "123456"; // Password mặc định
+  const router = useRouter();
 
-  const openModal = (option: string) => {
-    setCurrentModal(option);
-    if (option === "Change Username") setDraftUsername(username);
-    if (option === "Change Avatar") setDraftAvatar(avatar);
-    if (option === "Change Password") {
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setErrorMessage("");
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      return Alert.alert("❗ Missing Fields", "Please fill in all fields.");
     }
-    setIsModalVisible(true);
-  };
-
-  const handleSave = () => {
-    if (currentModal === "Change Username") {
-      setUsername(draftUsername); // 👈 Lưu context
-    } else if (currentModal === "Change Avatar") {
-      setAvatar(draftAvatar); // 👈 Lưu context
-    } else if (currentModal === "Change Password") {
-      if (oldPassword !== TEMP_PASSWORD) {
-        setErrorMessage("Current password is invalid");
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        setErrorMessage("New passwords do not match");
-        return;
-      }
-      console.log("Password changed successfully:", newPassword);
-      setErrorMessage("");
+    if (newPassword !== confirmNewPassword) {
+      return Alert.alert("❌ Password Mismatch", "New passwords do not match.");
     }
-    setIsModalVisible(false);
+
+    try {
+      const userInfo = await getUserInfo();
+      if (!userInfo) throw new Error("User not logged in");
+
+      const { id, email } = userInfo;
+
+      setLoading(true);
+      // 1. Gửi email xác thực
+      await requestVerification(email);
+
+      // 2. Lưu thông tin tạm thời (id + newPassword) vào SecureStore
+      await SecureStore.setItemAsync(
+        "pendingChangePassword",
+        JSON.stringify({ id, newPassword })
+      );
+
+      Alert.alert(
+        "📩 Check Your Email",
+        "We’ve sent a verification link to your email. Please click it to confirm password change."
+      );
+    } catch (error: any) {
+      Alert.alert("❌ Error", error.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      <ScrollView className="flex-1 bg-white">
-        <View className="p-4">
-          {settingsOptions.map((option) => (
-            <TouchableOpacity
-              key={option}
-              className="flex-row justify-between items-center py-4 border-b border-gray-200"
-              onPress={() => openModal(option)}
-            >
-              <Text className="text-base">{option}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+    <View className="flex-1 justify-center p-4">
+      <Text className="text-3xl mb-6 text-black">Change Password</Text>
 
-      {/* Modal */}
-      <Modal visible={isModalVisible} transparent animationType="slide">
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white rounded-2xl p-6 w-80">
-            <Text className="text-lg font-bold mb-4">{currentModal}</Text>
+      <TextInput
+        value={currentPassword}
+        onChangeText={setCurrentPassword}
+        placeholder="Current Password"
+        placeholderTextColor={"#888"}
+        secureTextEntry
+        className="border border-gray-400 p-2 mb-4 rounded text-black"
+      />
+      <TextInput
+        value={newPassword}
+        onChangeText={setNewPassword}
+        placeholder="New Password"
+        placeholderTextColor={"#888"}
+        secureTextEntry
+        className="border border-gray-400 p-2 mb-4 rounded text-black"
+      />
+      <TextInput
+        value={confirmNewPassword}
+        onChangeText={setConfirmNewPassword}
+        placeholder="Confirm New Password"
+        placeholderTextColor={"#888"}
+        secureTextEntry
+        className="border border-gray-400 p-2 mb-4 rounded text-black"
+      />
 
-            {/* Change Username */}
-            {currentModal === "Change Username" && (
-              <TextInput
-                value={draftUsername}
-                onChangeText={setDraftUsername}
-                placeholder="Enter new username"
-                className="border border-gray-300 rounded-lg px-3 py-2 mb-4"
-              />
-            )}
-
-            {/* Change Avatar */}
-            {currentModal === "Change Avatar" && (
-              <>
-                <Image
-                  source={{ uri: draftAvatar }}
-                  className="w-24 h-24 rounded-full self-center mb-4"
-                />
-                <TextInput
-                  value={draftAvatar}
-                  onChangeText={setDraftAvatar}
-                  placeholder="Enter image URL"
-                  className="border border-gray-300 rounded-lg px-3 py-2 mb-4"
-                />
-              </>
-            )}
-
-            {/* Change Password */}
-            {currentModal === "Change Password" && (
-              <>
-                <TextInput
-                  value={oldPassword}
-                  onChangeText={setOldPassword}
-                  placeholder="Current password"
-                  secureTextEntry
-                  className="border border-gray-300 rounded-lg px-3 py-2 mb-3"
-                />
-                <TextInput
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  placeholder="New password"
-                  secureTextEntry
-                  className="border border-gray-300 rounded-lg px-3 py-2 mb-3"
-                />
-                <TextInput
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Confirm new password"
-                  secureTextEntry
-                  className="border border-gray-300 rounded-lg px-3 py-2 mb-3"
-                />
-                {errorMessage !== "" && (
-                  <Text className="text-red-500 text-sm mb-2">{errorMessage}</Text>
-                )}
-              </>
-            )}
-
-            {/* Buttons */}
-            <View className="flex-row justify-end space-x-2">
-              <TouchableOpacity
-                onPress={() => setIsModalVisible(false)}
-                className="px-3 py-2 rounded-lg bg-gray-200"
-              >
-                <Text className="text-gray-800">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSave}
-                className="px-3 py-2 rounded-lg bg-blue-500"
-              >
-                <Text className="text-white">Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </>
+      <TouchableOpacity
+        onPress={handleChangePassword}
+        className="bg-green-500 py-3 rounded w-full items-center"
+        disabled={loading}
+      >
+        {loading ? (
+          <Text className="text-white">Sending...</Text>
+        ) : (
+          <Text className="text-white">Change Password</Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 }

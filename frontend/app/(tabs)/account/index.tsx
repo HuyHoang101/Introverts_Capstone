@@ -62,32 +62,32 @@ export default function Index() {
       {/* Account Options */}
       <View className="mt-10 px-4">
         <AccountItem
-          icon={<Feather name="user" size={24} color="#333" />}
+          icon={<Feather name="user" size={24} color="#333" className='mr-3' />}
           label="Profile"
           onPress={() => router.push("/account/Profile")}
         />
         <AccountItem
-          icon={<Feather name="lock" size={24} color="#333" />}
+          icon={<Feather name="lock" size={24} color="#333" className='mr-3'/>}
           label="Security Settings"
           onPress={() => router.push("/account/Setting")}
         />
         <AccountItem
-          icon={<Feather name="link" size={24} color="#333" />}
-          label="Linked Accounts"
+          icon={<Feather name="cpu" size={24} color="#333" className='mr-3'/>}
+          label="AI chat bot"
           onPress={() => router.push("/account/LinkAccount")}
         />
         <AccountItem
-          icon={<Feather name="globe" size={24} color="#333" />}
+          icon={<Feather name="globe" size={24} color="#333" className='mr-3'/>}
           label="Language"
           onPress={() => router.push("/account/Language")}
         />
         <AccountItem
-          icon={<Feather name="bell" size={24} color="#333" />}
+          icon={<Feather name="bell" size={24} color="#333" className='mr-3'/>}
           label="Notifications"
           onPress={() => router.push("/account/Notifications")}
         />
         <AccountItem
-          icon={<MaterialIcons name="logout" size={24} color="red" />}
+          icon={<MaterialIcons name="logout" size={24} color="red" className='mr-3'/>}
           label="Logout"
           isDestructive
           onPress={async () => {

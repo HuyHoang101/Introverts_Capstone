@@ -18,6 +18,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 import { getCommentsByPostId, addComment, uploadCommentImage } from '@/service/commentService';
 import { getUserInfo } from '@/service/authService';
+import { changePostStatus } from '@/service/postService';
 import { useRouter } from 'expo-router';
 
 type Comment = {
@@ -189,6 +190,43 @@ export default function ReportDetail() {
     }
   };
 
+  const handleChangePostStatus = async () => {
+    if (!reportData?.id) return;
+
+    // Hiển thị cửa sổ xác nhận trước khi thay đổi trạng thái
+    Alert.alert(
+      'Are you sure?',
+      `Are you sure you want to mark this report as ${reportData.published ? 'Pending' : 'Solved'}?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const updatedPost = await changePostStatus(reportData.id, !reportData.published);
+              if (updatedPost) {
+                // Cập nhật trạng thái bài viết trong state
+                reportData.published = !reportData.published;
+                Alert.alert('Success', `Report marked as ${reportData.published ? 'Solved' : 'Pending'}`);
+              } else {
+                throw new Error('Failed to update post status');
+              }
+            } catch (error) {
+              console.error('Error changing post status:', error);
+              Alert.alert('Error', 'Failed to update post status');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loadingList) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
@@ -232,7 +270,15 @@ export default function ReportDetail() {
                   </View>
                 </View>
                 <Text className="text-sm text-gray-600">
-                  {reportData?.published ? 'Solved' : 'Pending'}
+                  {reportData?.published ? (
+                    <TouchableOpacity onPress={handleChangePostStatus}>
+                      <Text className="text-blue-500">Pending</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity onPress={handleChangePostStatus}>
+                      <Text className="text-blue-500">Solved</Text>
+                    </TouchableOpacity>
+                  )}
                 </Text>
               </View>
 

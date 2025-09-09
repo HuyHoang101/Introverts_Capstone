@@ -1,4 +1,5 @@
 import prisma from '../config/prisma.js';
+import { broadcastPostNotifications } from '../notification/notification.post.js';
 
 export const getAllPosts = () => {
   return prisma.post.findMany({
@@ -33,7 +34,7 @@ export const getPostsByAuthorId = (authorId) => {
 };
 
 export const createPost = (data) => {
-  return prisma.post.create({
+  const post = prisma.post.create({
     data,
     include: {
       author: true,
@@ -41,6 +42,13 @@ export const createPost = (data) => {
       like: true,
     },
   });
+  post.then((p) => {
+    // Tạo thông báo cho tất cả user
+    broadcastPostNotifications(p.id).catch((err) => {
+      console.error("Failed to broadcast post notifications", err);
+    });
+  });
+  return post;
 };
 
 export const updatePost = (id, data) => {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -78,7 +78,10 @@ const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 const ReportForm = () => {
   const router = useRouter();
 
-  const [filterTitle, setFilterTitle] = useState<string>('all');
+  const [filterTitle, setFilterTitle] = useState<{ type: string; status: string }>({
+    type: 'all', // mặc định là all
+    status: 'all', // mặc định là all
+  });
 
   // dữ liệu gốc + dữ liệu đang hiển thị (sau filter)
   const [allReports, setAllReports] = useState<Report[] | null>(null);
@@ -94,15 +97,39 @@ const ReportForm = () => {
   // delete mode
   const [deleteMode, setDeleteMode] = useState(false);
 
-  const handleFilter = useCallback(
+  const handleFilterByType = useCallback(
     (type: string) => {
-      setFilterTitle(type);
-      const source = allReports ?? [];
-      const filtered = type === 'all' ? source : source.filter((r) => r.title === type);
-      setReports(filtered);
+      setFilterTitle((prev) => ({ ...prev, type }));
     },
-    [allReports]
+    []
   );
+
+  const handleFilterByStatus = useCallback(
+    (status: string) => {
+      setFilterTitle((prev) => ({ ...prev, status }));
+    },
+    []
+  );
+
+  const handleFilter = useCallback(() => {
+    let filteredReports = allReports ?? [];
+
+    // Lọc theo loại báo cáo
+    if (filterTitle.type !== 'all') {
+      filteredReports = filteredReports.filter((r) => r.title === filterTitle.type);
+    }
+
+    // Lọc theo trạng thái
+    if (filterTitle.status !== 'all') {
+      filteredReports = filteredReports.filter((r) => r.status === filterTitle.status);
+    }
+
+    setReports(filteredReports);
+  }, [allReports, filterTitle]);
+
+  useEffect(() => {
+    handleFilter();
+  }, [filterTitle, allReports]);
 
   useFocusEffect(
     useCallback(() => {
@@ -160,7 +187,6 @@ const ReportForm = () => {
     }, [])
   );
 
-  // Xoá report
   const confirmDelete = useCallback((id: string) => {
     Alert.alert('Are you sure?', 'This will permanently delete the report.', [
       { text: 'Cancel', style: 'cancel' },
@@ -180,8 +206,6 @@ const ReportForm = () => {
     ]);
   }, []);
 
-  // ==== RENDER ====
-
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -194,12 +218,23 @@ const ReportForm = () => {
     <View className="bg-white w-full h-full justify-center flex-1 relative">
       {/* Header: Filter + Actions */}
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100 bg-white">
-        {/* Filter tabs */}
+        {/* Filter theo loại báo cáo */}
         <View className="flex-row">
           {['all', 'water', 'electric', 'air'].map((type) => (
-            <TouchableOpacity key={type} onPress={() => handleFilter(type)} className="mr-4">
-              <Text className={filterTitle === type ? 'text-blue-600 font-bold' : 'text-gray-500'}>
+            <TouchableOpacity key={type} onPress={() => handleFilterByType(type)} className="mr-4">
+              <Text className={filterTitle.type === type ? 'text-blue-600 font-bold' : 'text-gray-500'}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Filter theo trạng thái */}
+        <View className="flex-row mt-4">
+          {['solved', 'pending'].map((status) => (
+            <TouchableOpacity key={status} onPress={() => handleFilterByStatus(status)} className="mr-4">
+              <Text className={filterTitle.status === status ? 'text-blue-600 font-bold' : 'text-gray-500'}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -261,6 +296,15 @@ const ReportForm = () => {
                   <Text className="italic text-sm text-gray-500">{safeFormatDate(item.datetime)}</Text>
                   <Text className="text-sm mt-1">{item.problem}</Text>
                 </View>
+
+                {/* Trạng thái */}
+                <Text
+                  className={`text-sm font-bold ${
+                    item.status === 'Solved' ? 'text-green-500' : 'text-yellow-500'
+                  }`}
+                >
+                  {item.status}
+                </Text>
               </View>
             </TouchableOpacity>
           )}

@@ -13,6 +13,12 @@ import deviceRoutes from './src/routes/device.route.js';
 import bookingRoutes from './src/routes/bookingTable.route.js';
 import authRoutes from './src/auth/auth.route.js';
 import notificationRoutes from './src/routes/notification.route.js';
+import verifyRoutes from './src/routes/verify.route.js';
+import chatRoute from "./src/routes/chat.route.js";
+import reportRoute from "./src/routes/report.route.js";
+import { startBookingReminderCron } from './src/notification/notification.cron.js';
+import { startPollutionAlertCron } from './src/notification/pollutionNotification.cron.js';
+import verifyPageRoute from './src/routes/verifyPage.route.js';
 import cors from 'cors';
 
 
@@ -41,6 +47,12 @@ app.use('/api/devices', deviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/auth/verify', verifyRoutes);
+app.use("/api/chat", chatRoute);
+app.use("/api/reports", reportRoute);
+app.use('/', verifyPageRoute);
+startBookingReminderCron();
+startPollutionAlertCron();
 
 
 app.listen(5000, '0.0.0.0', () => {

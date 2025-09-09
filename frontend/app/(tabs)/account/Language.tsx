@@ -13,7 +13,7 @@ export default function Language() {
             className="flex-row justify-between items-center py-4 border-b border-gray-200"
             onPress={() => console.log(`Selected ${lang}`)}
           >
-            <Text className="text-base">{lang}</Text>
+            <Text className="text-base text-black">{lang}</Text>
           </TouchableOpacity>
         ))}
       </View>

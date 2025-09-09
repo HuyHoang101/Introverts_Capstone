@@ -23,6 +23,10 @@ export const updatePost = async (id: string, data: any) => {
   });
 };
 
+export const changePostStatus = async (id: string, published: boolean) => {
+  return updatePost(id, { published: published });
+};
+
 export const deletePost = async (id: string) => {
   return request(`/${id}`, { method: 'DELETE' });
 };

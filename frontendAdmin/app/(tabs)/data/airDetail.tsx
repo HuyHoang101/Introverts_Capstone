@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import CircularProgress from '@/component/CircularProgress';
 import PollutantList from '@/component/PollurtantList';
 import { calculateDangerScore } from '@/utils/dangerScore';
@@ -72,7 +72,12 @@ export default function Mission() {
   };
 
   return (
-    <View className='flex-1 mt-10 items-center'>
+    <ImageBackground
+      source={require('@/assets/images/bg_main.png')}
+      className="flex-1"
+      resizeMode="stretch"
+    > 
+      <View className="absolute inset-0 bg-white/50" />
       <Text className='font-bold text-4xl mb-14'>Danger Score</Text>
       
       {loading ? (
@@ -111,6 +116,6 @@ export default function Mission() {
           </ScrollView>
         </View>
       )}
-    </View>
+    </ImageBackground>
   );
 }

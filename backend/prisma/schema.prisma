@@ -19,6 +19,7 @@ model User {
   email     String   @unique
   name      String?
   password  String
+  emailVerified DateTime?
   phone     String?  @unique
   address   String?
   introduction String? @default("Hi there, welcome to my profile!")
@@ -161,12 +162,20 @@ model Device {
 }
 
 model Notification {
-  id          String   @id @default(cuid())
-  title       String
-  content     String
-  isRead      Boolean  @default(false)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  title         String
+  content       String
+  isRead        Boolean  @default(false)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  // ↓↓↓ thêm mới
+  type          String   // "BOOKING_REMINDER_15M" | "BOOKING_START" | "POST_NEW"
+  refId         String?  // bookingId hoặc postId
+  scheduledFor  DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, isRead, createdAt])
+  @@unique([userId, type, refId, scheduledFor])
 }

@@ -12,8 +12,8 @@ export default function LegendBar() {
   return (
     <View style={styles.wrap}>
       <Item c="#c8f7c5" t="Free" />
-      <Item c="#ffb3b3" t="Booked" />
-      <Item c="#fff1a6" t="In use" />
+      <Item c="#ffb3b3" t="Other's" />
+      <Item c="#fff1a6" t="Your" />
     </View>
   );
 }

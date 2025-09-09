@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import CircularProgress from '../../../component/CircularProgress';
 import CookieList from '../../../component/PollurtantList';
 import { calculateDangerScore } from '../../../utils/dangerScore';
@@ -72,8 +72,13 @@ export default function Mission() {
   };
 
   return (
-    <View className='flex-1 mt-10 items-center'>
-      <Text className='font-bold text-4xl mb-14'>Danger Score</Text>
+    <ImageBackground
+      source={require('@/assets/images/bg_main.png')}
+      className="flex-1 items-center"
+      resizeMode="stretch"
+    >
+      <View className="absolute inset-0 bg-white/50" />
+      <Text className='font-bold text-4xl mt-2 mb-14 text-black'>Danger Score</Text>
       
       {loading ? (
         <View className='flex-1 justify-center items-center'>
@@ -111,6 +116,6 @@ export default function Mission() {
           </ScrollView>
         </View>
       )}
-    </View>
+    </ImageBackground>
   );
 }

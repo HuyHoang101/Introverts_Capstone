@@ -46,6 +46,10 @@ import bcrypt from "bcryptjs";
   
   export const updateUserController = async (req, res) => {
     const { id } = req.params;
+    const { password } = req.body;
+    if (password) {
+      req.body.password = await bcrypt.hash(password, 8);
+    }
     try {
       const user = await updateUser(id, req.body);
       res.json(user);

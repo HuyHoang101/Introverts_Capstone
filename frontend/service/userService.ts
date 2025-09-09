@@ -1,4 +1,7 @@
 import request from '../lib/userApi';
+import { requestVerifyApi, consumeVerifyApi } from '../lib/verifyApi';
+import { registerApi } from '../lib/authApi';
+import * as SecureStore from 'expo-secure-store';
 
 // CRUD cơ bản
 export const getAllUsers = async () => {
@@ -21,6 +24,40 @@ export const updateUser = async (id: string, data: any) => {
     method: 'PUT',
     body: JSON.stringify(data),
   });
+};
+
+// Gửi yêu cầu xác thực
+export const requestVerification = async (email: string) => {
+  const res = await requestVerifyApi(email);
+  if (!res.success) throw new Error("Failed to send verification email");
+  alert("Please check your email and click the verification link.");
+  return res;
+};
+
+// Xử lý token sau khi user click link
+export const handleVerification = async (
+  token: string,
+  action: "register" | "changePassword",
+  payload: any
+) => {
+  const consumeResult = await consumeVerifyApi(token);
+  if (!consumeResult.success) throw new Error("Email verification failed.");
+
+  if (action === "register") {
+    const userResult = await registerApi(payload);
+    await SecureStore.setItemAsync("userInfo", JSON.stringify(userResult.user));
+    await SecureStore.setItemAsync("accessToken", userResult.token);
+    alert("Registration successful!");
+    return userResult;
+  }
+
+  if (action === "changePassword") {
+    const { id, newPassword } = payload;
+    const result = await updateUser(id, { password: newPassword });
+    if (!result) throw new Error("Password change failed");
+    alert("Password changed successfully");
+    return result;
+  }
 };
 
 export const deleteUser = async (id: string) => {

@@ -1,4 +1,4 @@
-import prisma from "../config/prisma";
+import prisma from "../config/prisma.js";
 
 export const createNotification = async (data) => {
   return await prisma.notification.create({ data });

@@ -6,5 +6,8 @@ export default function AccountLayout() {
     <Stack.Screen name="index" options={{ headerShown: false }} />
     <Stack.Screen name="Profile" options={{ title: 'Profile' }} />
     <Stack.Screen name="MyReportDetail" options={{ title: 'Report Detail' }} />
+    <Stack.Screen name="Setting" options={{ title: 'Change Password' }} />
+    <Stack.Screen name="Notifications" options={{ title: 'Notifications' }} />
+    <Stack.Screen name="LinkAccount" options={{ title: 'Chat Bot' }} />
   </Stack>;
 }

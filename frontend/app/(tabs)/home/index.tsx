@@ -9,6 +9,7 @@ import { getUserInfo } from '@/service/authService';
 import { getAllPosts } from '@/service/postService';
 import { getAllLikes } from '@/service/likeService';
 import { formatVietnamTime } from '@/utils/time';
+import NotificationBell from '@/component/NotificationBell';
 
 type Report = {
   id: string;
@@ -123,10 +124,8 @@ export default function HomeScreen() {
           <Image source={require('../../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
           <Text className='font-extrabold text-5xl text-white'>GreenSync</Text>
         </View>
-        <Feather name="bell" size={36} color="white" />
-        <View className='flex bg-red-500 absolute right-0 top-0 w-4 h-4 rounded-full items-center justify-center'>
-          <Text className='text-white font-semibold text-xs'>3</Text>
-        </View>
+        
+        <NotificationBell />
       </View>
 
       {/* Daily Tips & Alert */}

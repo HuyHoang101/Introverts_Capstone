@@ -1,24 +1,16 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import React from 'react';
-import { Feather } from "@expo/vector-icons";
+import { View, Text, Switch } from "react-native";
+import { useChat } from "@/component/ChatContext";
+import React from "react";
 
-const linkedAccounts = ["Google", "Facebook", "Email"];
+export default function SettingScreen() {
+  const { visible, setVisible } = useChat();
 
-export default function LinkAccount() {
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="p-4">
-        {linkedAccounts.map((account) => (
-          <TouchableOpacity
-            key={account}
-            className="flex-row justify-between items-center py-4 border-b border-gray-200"
-            onPress={() => console.log(`Link ${account}`)}
-          >
-            <Text className="text-base">{account}</Text>
-            <Feather name="link" size={20} color="#555" />
-          </TouchableOpacity>
-        ))}
+    <View className="flex-1 bg-white">
+      <View className="flex-row items-center justify-between px-16 py-4">
+        <Text className="text-black">AI Chat Bot</Text>
+        <Switch value={visible} onValueChange={setVisible} />
       </View>
-    </ScrollView>
+    </View>
   );
 }

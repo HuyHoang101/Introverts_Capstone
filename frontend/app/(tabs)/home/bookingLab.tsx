@@ -16,23 +16,56 @@ import { toYMD } from '@/utils/time';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getUserInfo } from '@/service/authService';
 import { getAllBookings } from '@/service/bookingTableService';
+import { getAllTables } from '@/service/tableService'; // 👈 NEW
+
+type SelectedDesk = { id: string; name?: string } | null;
 
 export default function Home() {
   const router = useRouter();
   const today = useMemo(() => new Date(), []);
   const [selectedDateYMD, setSelectedDateYMD] = useState(toYMD(today));
-  const [selectedDesk, setSelectedDesk] = useState<number | null>(1);
+
+  // 👇 đổi từ string | null → object { id, name }
+  const [selectedDesk, setSelectedDesk] = useState<SelectedDesk>(null);
+
   const [slotId, setSlotId] = useState<SlotId>(0);
   const slot = SLOTS.find((s) => s.id === slotId)!;
 
   // refreshKey để buộc các component con refetch khi thay đổi booking
   const [refreshKey, setRefreshKey] = useState(0);
-  const doRefresh = () => setRefreshKey(k => k + 1);
+  const doRefresh = () => setRefreshKey((k) => k + 1);
 
   // My bookings (fetched from backend)
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
 
+  // 👇 map bảng bàn: { [id]: { id, name } }
+  const [tablesById, setTablesById] = useState<Record<string, { id: string; name?: string }>>({});
+
+  const now = new Date();
+  const todayYMD = toYMD(now);
+
+  const visibleBookings = myBookings.filter((b: any) => {
+    // So sánh ngày
+    if (b.dateYMD < todayYMD) return false;
+
+    // Nếu là hôm nay thì check thêm slot
+    if (b.dateYMD === todayYMD) {
+      const slotInfo = SLOTS.find((s) => s.id === b.slotId);
+      if (!slotInfo) return false;
+
+      // ví dụ slotInfo.startHour = 8
+      const slotStart = new Date();
+      slotStart.setHours(slotInfo.startHour, 0, 0, 0);
+
+      // Nếu slot đã bắt đầu (trước thời gian hiện tại) thì ẩn
+      if (slotStart <= now) return false;
+    }
+
+    return true;
+  });
+
+  // ========== Load user ==========
   useEffect(() => {
     (async () => {
       try {
@@ -44,7 +77,36 @@ export default function Home() {
     })();
   }, []);
 
-  // fetch my bookings when user or refreshKey or selectedDateYMD changes
+  // ========== Load tables (name bàn) 1 lần ==========
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const rows = await getAllTables(); // expected: [{ id, name }, ...] hoặc { tableId, name }
+        if (!mounted) return;
+
+        const map: Record<string, { id: string; name?: string }> = {};
+        (rows || []).forEach((r: any) => {
+          const id = String(r.id ?? r.tableId);
+          map[id] = { id, name: r.name };
+        });
+        setTablesById(map);
+
+        // Nếu chưa chọn bàn, set mặc định bàn đầu tiên
+        if (!selectedDesk && rows?.length) {
+          const firstId = String(rows[0].id ?? rows[0].tableId);
+          setSelectedDesk({ id: firstId, name: rows[0].name });
+        }
+      } catch (e) {
+        // có thể log hoặc Toast nếu muốn
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []); // chỉ load 1 lần
+
+  // ========== Fetch my bookings ==========
   useEffect(() => {
     if (!user) {
       setMyBookings([]);
@@ -61,13 +123,15 @@ export default function Home() {
         setMyBookings([]);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [user, refreshKey]);
 
   // quota: whether user already has booking on selectedDateYMD
   const quotaUsed = (() => {
     if (!user) return false;
-    return myBookings.some(b => b.dateYMD === selectedDateYMD);
+    return myBookings.some((b) => b.dateYMD === selectedDateYMD);
   })();
 
   // Locker modal state
@@ -81,8 +145,12 @@ export default function Home() {
   // sticky header indices
   const stickyHeaderIndices = [2];
 
+  // 👇 label hiển thị tên bàn (fallback sang "Table {id}" nếu chưa có name)
+  const deskLabel =
+    selectedDesk?.name ?? (selectedDesk?.id ? `Table ${selectedDesk.id}` : 'Table');
+
   return (
-    <ImageBackground 
+    <ImageBackground
       source={require('@/assets/images/bg_main.png')}
       style={styles.bg}
       resizeMode="stretch"
@@ -124,11 +192,16 @@ export default function Home() {
           <LockerColumn onPressLocker={onPressLocker} />
           <View style={{ flex: 1 }}>
             <DeskGrid
-              selectedDeskId={selectedDesk}
-              onSelect={setSelectedDesk}
+              selectedDeskId={selectedDesk?.id ?? null}
+              // 👇 mỗi lần chọn bàn, set luôn cả name dựa vào tablesById
+              onSelect={(deskId: string) => {
+                const id = String(deskId);
+                setSelectedDesk({ id, name: tablesById[id]?.name });
+              }}
               dateYMD={selectedDateYMD}
               slotId={slotId}
               refreshKey={refreshKey}
+              userId={user?.id}
             />
           </View>
         </View>
@@ -137,16 +210,17 @@ export default function Home() {
         {selectedDesk && (
           <View style={{ marginTop: 16 }}>
             <Text style={styles.h2}>
-              Table {selectedDesk} — {selectedDateYMD}
+              {deskLabel} — {selectedDateYMD}
             </Text>
 
             <SlotSingle
-              deskId={selectedDesk}
+              deskId={selectedDesk.id} // dùng id thật để gọi API
               dateYMD={selectedDateYMD}
               slotId={slotId}
               label={slot.label}
               quotaUsed={quotaUsed}
               onRefresh={doRefresh}
+              userId={user?.id}
             />
           </View>
         )}
@@ -154,37 +228,42 @@ export default function Home() {
         {/* My bookings */}
         <View style={{ marginTop: 24, marginBottom: 16 }}>
           <Text style={styles.h2}>My bookings</Text>
-          {myBookings.length === 0 ? (
-            <Text style={{ color: '#FFF' }}>No bookings yet.</Text>
+          {visibleBookings.length === 0 ? (
+            <Text style={{ color: '#FFF' }}>No upcoming bookings.</Text>
           ) : (
             <View style={{ gap: 8 }}>
-              {myBookings.map((b: any, i: number) => (
-                <Pressable
-                  key={`${b.dateYMD}-${b.tableId}-${b.startTime}-${i}`}
-                  onPress={() => {
-                    setSelectedDateYMD(b.dateYMD);
-                    setSelectedDesk(Number(b.tableId));
-                    setSlotId(b.slotId);
-                  }}
-                  style={styles.myRow}
-                >
-                  <Text style={styles.myTitle}>Table {b.tableId} • Day {b.dateYMD}</Text>
-                  <Text style={styles.mySub}>
-                    {SLOTS.find((s) => s.id === b.slotId)?.label} • {b.status === 'checked_in' ? 'In use' : 'Booked'}
-                  </Text>
-                </Pressable>
-              ))}
+              {visibleBookings.map((b: any, i: number) => {
+                const id = String(b.tableId);
+                const nameFromTables = tablesById[id]?.name;
+                const displayName = nameFromTables ?? b.table?.name ?? `Table ${id}`;
+                return (
+                  <Pressable
+                    key={`${b.dateYMD}-${b.tableId}-${b.startTime}-${i}`}
+                    onPress={() => {
+                      setSelectedDateYMD(b.dateYMD);
+                      setSelectedDesk({ id, name: nameFromTables ?? b.table?.name });
+                      setSlotId(b.slotId);
+                    }}
+                    style={styles.myRow}
+                  >
+                    <Text style={styles.myTitle}>
+                      {displayName} • Day {b.dateYMD}
+                    </Text>
+                    <Text style={styles.mySub}>
+                      {SLOTS.find((s) => s.id === b.slotId)?.label}{' '}
+                      • {b.status === 'checked_in' ? 'In use' : 'Booked'}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
         </View>
+
       </ScrollView>
 
       {/* Locker modal */}
-      <LockerModal
-        visible={openLocker}
-        locker={lockerNum}
-        onClose={() => setOpenLocker(false)}
-      />
+      <LockerModal visible={openLocker} locker={lockerNum} onClose={() => setOpenLocker(false)} />
     </ImageBackground>
   );
 }

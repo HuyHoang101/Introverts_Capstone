@@ -13,6 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import { register } from '../../service/authService';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
+import { requestVerification } from '@/service/userService';
 
 export default function RegisterScreen() {
     const [name, setName] = useState('');
@@ -35,13 +36,19 @@ export default function RegisterScreen() {
         }
 
         try {
-        const { token, user } = await register({ name, email, password });
+        // Lưu thông tin tạm để dùng sau khi verify
+        const payload = { name, email, password };
+        await SecureStore.setItemAsync('pendingRegister', JSON.stringify(payload));
 
-        await SecureStore.setItemAsync('accessToken', token);
-        await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+        // Gửi email xác thực
+        await requestVerification(email);
 
-        Alert.alert('✅ Register Success', `Welcome, ${user.name}`);
-        router.replace('/(tabs)/home');
+        Alert.alert(
+            '📧 Verification Sent',
+            'Please check your email and click the verification link.'
+        );
+
+
         } catch (err) {
         const errorMessage =
             err && typeof err === 'object' && 'message' in err
@@ -208,8 +215,8 @@ export default function RegisterScreen() {
                     from={{ opacity: 0, translateY: -30 }}
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ delay: 1250, duration: 1000 }} 
-                    className='flex-row items-center justify-center w-full mt-4 text-black'>
-                        <Text>Already have an account?  </Text>
+                    className='flex-row items-center justify-center w-full mt-4'>
+                        <Text className='text-black'>Already have an account?  </Text>
                         <TouchableOpacity
                             className='items-center'
                             onPress={() => router.replace('/(auth)/login')}

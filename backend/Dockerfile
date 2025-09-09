@@ -1,20 +1,30 @@
-# Dockerfile cho ứng dụng Node.js
-# Chạy Node
+# Dockerfile
 FROM node:20-alpine
-
-# Tạo thư mục làm việc
 WORKDIR /app
 
-# Cài dependencies
-COPY . .
+# 1) Copy file khai báo deps trước để tận dụng cache
+COPY package*.json ./
 
+# 2) Cài tất cả deps (kể cả dev) để có prisma CLI cho bước generate
 RUN npm install
 
-# Cài đặt Prisma CLI
+# 3) Copy toàn bộ source (bao gồm prisma/schema.prisma)
+COPY . .
+
+# 4) Generate Prisma Client (cần prisma CLI đã có ở bước 2)
 RUN npx prisma generate
-# Mở cổng backend
+
+# 5) Prune dev deps để image gọn cho production
+RUN npm prune --omit=dev
+
+# 6) (Tuỳ chọn) Bảo mật nhẹ
+# RUN addgroup -S nodejs && adduser -S nodeuser -G nodejs
+# USER nodeuser
+
 EXPOSE 5000
 
-# Lệnh chạy backend
+# Sửa path entry cho đúng dự án của bạn:
+# Nếu file chạy là src/index.js:
+# CMD ["node", "src/index.js"]
+# Nếu là index.js ở root thì đổi thành:
 CMD ["node", "index.js"]
-

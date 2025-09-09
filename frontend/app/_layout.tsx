@@ -1,43 +1,28 @@
 // app/_layout.tsx
-import { Slot } from "expo-router";
-import { useEffect, useState } from "react";
-import * as SecureStore from "expo-secure-store";
-import { View, ActivityIndicator } from "react-native";
-import React from "react";
-import { useRouter } from "expo-router";
+import { Slot, useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import * as Linking from "expo-linking";
 import "../global.css";
 
 export default function RootLayout() {
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(null)
   const router = useRouter();
 
+  // Warm start deep links
   useEffect(() => {
-    const checkToken = async () => {
-      const storedToken = await SecureStore.getItemAsync("accessToken");
-      setToken(storedToken);
-      setLoading(false);
-    };
-    checkToken();
-  }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      if (token) {
-        router.replace("/(tabs)/home"); // ✅ Đã login → home
-      } else {
-        router.replace("/(auth)/login"); // ❌ Chưa login → login
+    const sub = Linking.addEventListener("url", ({ url }) => {
+      const { path, queryParams } = Linking.parse(url);
+      const p = (path || "").replace(/^\//, ""); // normalize
+      if (p === "verify") {
+        router.replace({ pathname: "/verify", params: queryParams } as any);
       }
-    }
-  }, [loading, token]);
+    });
+    return () => sub.remove();
+  }, [router]);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-  
-  return <Slot />;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Slot />
+    </GestureHandlerRootView>
+  );
 }

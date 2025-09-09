@@ -60,7 +60,6 @@ export default function UserListScreen() {
   try {
     console.log("Fetching users...");
     const data = await getAllUsers();
-    console.log("Users fetched:", data);
     setAllUsers(data);
   } catch (err: any) {
     console.error("Fetch users error:", err?.response || err?.message || err);
