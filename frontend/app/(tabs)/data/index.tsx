@@ -13,11 +13,13 @@ import { calculateDangerScore } from '@/utils/dangerScore';
 import React from 'react';
 
 const screenWidth = Dimensions.get('window').width;
+
 interface waterData {
   total: number;
   period?: string;
   timestamp?: string;
 }
+
 interface electricData {
   high: number;
   medium: number;
@@ -27,12 +29,17 @@ interface electricData {
   period?: string;
 }
 
+/** === Air fields mới (backend) ===
+ *  Bắt buộc: nh3, no2, co
+ *  Tuỳ chọn: temperature (°C), humidity (%), period/timestamp
+ */
 interface PollutantData {
-  pm25: number;
-  pm10: number;
+  nh3: number;
   no2: number;
-  o3: number;
   co: number;
+  temperature?: number;
+  humidity?: number;
+  period?: string;
   timestamp?: string;
 }
 
@@ -71,23 +78,24 @@ const getAirQualityLevelRow = (score: number) => {
   );
 };
 
-const getDangerColor = (score: number): string => {
-  if (score <= 0.19) return '#22c55e'; // green-500
-  if (score <= 0.39) return '#84cc16'; // lime-500
-  if (score <= 0.59) return '#eab308'; // yellow-500
-  if (score <= 0.74) return '#f97316'; // orange-500
-  if (score <= 0.89) return '#ef4444'; // red-500
-  if (score <= 0.99) return '#dc2626'; // red-600
-  return '#7f1d1d'; // red-800
+const getDangerColor = (progress0to1: number): string => {
+  // sử dụng score/100 làm input (0..1)
+  if (progress0to1 <= 0.19) return '#22c55e';  // green-500
+  if (progress0to1 <= 0.39) return '#84cc16';  // lime-500
+  if (progress0to1 <= 0.59) return '#eab308';  // yellow-500
+  if (progress0to1 <= 0.74) return '#f97316';  // orange-500
+  if (progress0to1 <= 0.89) return '#ef4444';  // red-500
+  if (progress0to1 <= 0.99) return '#dc2626';  // red-600
+  return '#7f1d1d';                             // red-800
 };
 
 const chartConfig = {
   backgroundGradientFrom: '#ffffff',
   backgroundGradientTo: '#ffffff',
-  fillShadowGradient: '#3b82f6', // Tailwind blue-500
+  fillShadowGradient: '#3b82f6',
   fillShadowGradientOpacity: 1,
-  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // bar color
-  labelColor: () => '#374151', // text color
+  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+  labelColor: () => '#374151',
   barPercentage: 0.7,
   formatYLabel: (label: string) => {
     const num = parseFloat(label);
@@ -104,7 +112,7 @@ const chartConfig1 = {
   backgroundGradientFrom: '#ffffff',
   backgroundGradientTo: '#ffffff',
   decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`, // Màu xanh
+  color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   propsForLabels: { fontSize: 8 },
 };
@@ -114,7 +122,7 @@ const chartConfig2 = {
   backgroundGradientFrom: '#ffffff',
   backgroundGradientTo: '#ffffff',
   decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(234, 179, 8, ${opacity})`, // Màu xanh
+  color: (opacity = 1) => `rgba(234, 179, 8, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   propsForLabels: { fontSize: 8 },
 };
@@ -123,6 +131,10 @@ const percent = 0.73;
 
 export default function Index() {
   const router = useRouter();
+  const goAirDetail = (obj: any) => {
+    const payload = encodeURIComponent(JSON.stringify(obj));
+    router.push({ pathname: '/data/AirDetail', params: { payload } });
+  };
 
   const handleWaterCardPress = () => {
     router.push({ 
@@ -152,7 +164,7 @@ export default function Index() {
 
   const handleAirList = () => {
     router.push({ pathname: '/data/AirList' });
-  }
+  };
 
   const [water, setWater] = useState<waterData[] | null>(null);
   const [electric, setElectric] = useState<electricData[] | null>(null);
@@ -163,7 +175,7 @@ export default function Index() {
       try {
         const data = await getAllAirData();
         if (data.length > 0) {
-          setAir(data);
+          setAir(data as PollutantData[]);
         }
       } catch (error) {
         console.error('Fail to fetch air data', error);
@@ -215,7 +227,7 @@ export default function Index() {
         data: waterReversed.map(item => item.total ?? 0),
       }
     ]
-  }
+  };
 
   const electricReversed = (electric ?? []).slice(0, 12).reverse();
   const electricData = {
@@ -226,14 +238,14 @@ export default function Index() {
         strokeWidth: 2
       }
     ]
-  }
+  };
 
   const airReversed = (air ?? []).slice(0, 12).reverse();
   const airData = {
-    labels: airReversed.map(item => formatDate(item.timestamp ?? 'Unknown')),
+    labels: airReversed.map(item => formatDate((item.period ?? item.timestamp ?? 'Unknown') as string)),
     datasets: [
       {
-        data: airReversed.map(item => calculateDangerScore(item)),
+        data: airReversed.map(item => calculateDangerScore({ nh3: item.nh3, no2: item.no2, co: item.co })),
         strokeWidth: 2
       }
     ]
@@ -417,26 +429,23 @@ export default function Index() {
           <View className='flex-col justify-center items-center bg-white rounded-lg shadow-md border border-gray-200 p-2 m-2 max-w-full'>
             <View className="flex-row justify-between items-center mb-4 w-full">
               <Text className='text-lg font-bold text-black'>Danger Score</Text>
-              <TouchableOpacity onPress={() => router.push({
-                pathname: '/data/AirDetail', 
-                params: {
-                  data: JSON.stringify(
-                    air && air.length > 0
-                      ? air[0]
-                      : { pm25: 0, pm10: 0, no2: 0, o3: 0, co: 0 }
-                  ),
-                }
-              })} >
+              <TouchableOpacity onPress={() => goAirDetail(
+                air && air.length > 0
+                  ? air[0]
+                  : { nh3: 0, no2: 0, co: 0, temperature: 0, humidity: 0 }
+              )}>
                 <Text className="text-sm font-semibold text-black">See more →</Text>
               </TouchableOpacity>
             </View>
+
             <View className='flex-row justify-start items-start w-full mt-2'>
-                <View className='flex-col mr-10 ml-3'>
+              {/* Vòng tròn Danger Score */}
+              <View className='flex-col mr-10 ml-3'>
                 {air && air.length > 0 ? (
                   (() => {
-                    const score = calculateDangerScore(air[0] ?? { pm25: 0, pm10: 0, no2: 0, o3: 0, co: 0 }); // returns 0–100
+                    const score = calculateDangerScore({ nh3: air[0].nh3, no2: air[0].no2, co: air[0].co }); // 0–100
                     const progress = score / 100;
-                    const color = getDangerColor(progress); // use score/100 for color
+                    const color = getDangerColor(progress);
 
                     return (
                       <Progress.Circle
@@ -447,61 +456,78 @@ export default function Index() {
                         borderWidth={0}
                         thickness={10}
                         showsText={true}
-                        formatText={() => `${score}`} // show raw score, not percent
+                        formatText={() => `${score}`} // show raw score
                         textStyle={{ fontSize: 20, fontWeight: 'bold', color: color }}
                       />
                     );
                   })()
                 ) : null}
+              </View>
 
-                </View>
-                <View>
-                  <Text className='text-2xl font-bold text-gray-800 mb-2'>Air Quality Level</Text>
-                  {air && air.length > 0 ? (
-                    getAirQualityLevelRow(calculateDangerScore(air[0]))
-                  ) : (
-                    <Text className='text-gray-500'>No data available</Text>
-                  )}
-                </View>
+              {/* Cột thông tin bên phải: mức độ + nhiệt độ/độ ẩm */}
+              <View style={{ flex: 1 }}>
+                <Text className='text-2xl font-bold text-gray-800 mb-2'>Air Quality Level</Text>
+                {air && air.length > 0 ? (
+                  <>
+                    {getAirQualityLevelRow(
+                      calculateDangerScore({ nh3: air[0].nh3, no2: air[0].no2, co: air[0].co })
+                    )}
+                    <View className="mt-3">
+                      <Text className="text-base text-gray-700">
+                        🌡️ Temperature: <Text className="font-semibold text-gray-900">
+                          {typeof air[0].temperature === 'number' ? `${air[0].temperature}°C` : 'N/A'}
+                        </Text>
+                      </Text>
+                      <Text className="text-base text-gray-700 mt-1">
+                        💧 Humidity: <Text className="font-semibold text-gray-900">
+                          {typeof air[0].humidity === 'number' ? `${air[0].humidity}%` : 'N/A'}
+                        </Text>
+                      </Text>
+                    </View>
+                  </>
+                ) : (
+                  <Text className='text-gray-500'>No data available</Text>
+                )}
+              </View>
             </View>
           </View>
 
           {/* ✅ Air Quality Chart */}
           <Text className="text-3xl font-bold text-white p-4">Daily Air Quality Chart</Text>
-            <View className="p-2 bg-white rounded-xl shadow mt-3 border border-gray-200 mx-2">
-              <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-lg font-bold text-gray-800">🌬️ Daily Air Quality</Text>
-                <TouchableOpacity onPress={handleAirList}>
-                  <Text className="text-sm font-semibold">See more →</Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={{ height: 180, width: screenWidth * 1.4 }}>
-                {airData?.datasets[0]?.data?.length === 0 && (
-                  <Text className='flex-1 justify-center items-center text-black'>Loading data...</Text>
-                )}
-                {airData?.datasets[0]?.data?.length > 0 && (
-                  <LineChart
-                    data={airData}
-                    width={screenWidth * 1.4}
-                    height={180}
-                    yAxisSuffix=""
-                    yAxisInterval={1}
-                    formatYLabel={(label) => {
-                      const num = Number(label);
-                      if (!isFinite(num)) return '0';
-                      return num.toFixed(1); // show score as is
-                    }}
-                    chartConfig={chartConfig2}
-                    bezier
-                    fromZero
-                    style={{ borderRadius: 16 }}
-                  />
-                )}
-                </View>
-              </ScrollView>
+          <View className="p-2 bg-white rounded-xl shadow mt-3 border border-gray-200 mx-2">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-lg font-bold text-gray-800">🌬️ Daily Air Quality</Text>
+              <TouchableOpacity onPress={handleAirList}>
+                <Text className="text-sm font-semibold">See more →</Text>
+              </TouchableOpacity>
             </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ height: 180, width: screenWidth * 1.4 }}>
+              {airData?.datasets[0]?.data?.length === 0 && (
+                <Text className='flex-1 justify-center items-center text-black'>Loading data...</Text>
+              )}
+              {airData?.datasets[0]?.data?.length > 0 && (
+                <LineChart
+                  data={airData}
+                  width={screenWidth * 1.4}
+                  height={180}
+                  yAxisSuffix=""
+                  yAxisInterval={1}
+                  formatYLabel={(label) => {
+                    const num = Number(label);
+                    if (!isFinite(num)) return '0';
+                    return num.toFixed(1); // show score as is
+                  }}
+                  chartConfig={chartConfig2}
+                  bezier
+                  fromZero
+                  style={{ borderRadius: 16 }}
+                />
+              )}
+              </View>
+            </ScrollView>
+          </View>
         </ScrollView>
         </ImageBackground>
         </>
