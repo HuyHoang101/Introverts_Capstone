@@ -77,9 +77,9 @@ export default function Index() {
           onPress={() => router.push("/account/LinkAccount")}
         />
         <AccountItem
-          icon={<Feather name="globe" size={24} color="#333" className='mr-3'/>}
-          label="Language"
-          onPress={() => router.push("/account/Language")}
+          icon={<Feather name="mail" size={24} color="#333" className='mr-3'/>}
+          label="Conversation"
+          onPress={() => router.push("/account/Conversation")}
         />
         <AccountItem
           icon={<Feather name="bell" size={24} color="#333" className='mr-3'/>}

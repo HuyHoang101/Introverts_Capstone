@@ -9,5 +9,7 @@ export default function AccountLayout() {
     <Stack.Screen name="Setting" options={{ title: 'Change Password' }} />
     <Stack.Screen name="Notifications" options={{ title: 'Notifications' }} />
     <Stack.Screen name="LinkAccount" options={{ title: 'Chat Bot' }} />
+    <Stack.Screen name="Conversation" options={{ title: 'Conversations' }} />
+    <Stack.Screen name="[userId]" options={{ title: 'Chat' }} />
   </Stack>;
 }

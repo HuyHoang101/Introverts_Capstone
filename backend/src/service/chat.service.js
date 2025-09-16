@@ -9,9 +9,9 @@ export const chatWithBot = async (message, context = {}) => {
 
     Yêu cầu:
     1. Phân loại báo cáo thành: Điện, Nước, Không khí, Khác (nếu có).
-    2. Đưa ra gợi ý hành động phù hợp trong khuôn viên trường RMIT.
+    2. Đưa ra nhiều gợi ý hành động khác nhau phù hợp trong khuôn viên trường RMIT.
     3. Nếu không phải báo cáo, trả lời như một trợ lý thân thiện.
-    4. Trả lời ngắn gọn, súc tích trong 50 từ.
+    4. Trả lời ngắn gọn, súc tích nhưng đủ ý trong 150 từ.
     5. Trả lời bằng tiếng Anh, trừ khi người dùng yêu cầu tiếng Việt.
     6. Không hỏi lại người dùng.
     7. Không đưa ra câu trả lời giả định.

@@ -5,10 +5,10 @@ import AirQualityComparisonCard from './AirQualityComparisonCard';
 type PollutantKey = 'PM2.5' | 'PM10' | 'NO₂' | 'O₃' | 'CO';
 
 interface PollutantData {
-  pm25: number;
-  pm10: number;
+  temperature: number;
+  humidity: number;
+  nh3: number;
   no2: number;
-  o3: number;
   co: number;
 }
 
@@ -80,7 +80,7 @@ interface PollutantListProps {
   co: number;
 }
 
-const PollutantList: React.FC<PollutantListProps> = ({ pm25, pm10, no2, o3, co }) => {
+const PollutantList: React.FC<PollutantListProps> = ({ temperature, humidity, nh3, no2, co }) => {
   const [showComparisonCard, setShowComparisonCard] = useState(false);
   const animations = useRef(
     COOKIE_CONFIG.map(() => ({
@@ -89,7 +89,7 @@ const PollutantList: React.FC<PollutantListProps> = ({ pm25, pm10, no2, o3, co }
     }))
   ).current;
 
-  const pollutants = { pm25, pm10, no2, o3, co};
+  const pollutants = { temperature, humidity, nh3, no2, co};
 
   const animateItem = useCallback((index: number, delay: number = 0) => {
     Animated.parallel([

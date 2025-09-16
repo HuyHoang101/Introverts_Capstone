@@ -1,9 +1,5 @@
-// service/reportService.ts
-import * as reportApi from "@/lib/reportApi";
+import { addReport as addReportApi, AddReportPayload } from '@/lib/reportApi';
 
-export const addReport = async (report: any) => {
-  return reportApi.request('/', {
-    method: 'POST',
-    body: JSON.stringify(report),
-  });
-};
+export async function addReport(payload: AddReportPayload) {
+  return addReportApi(payload); // giữ nguyên shape
+}

@@ -71,29 +71,22 @@ useEffect(() => {
 
       // 1) Tạo post trước (content = null vì hình sẽ upload sau)
       const postPayload = {
-        problem: problem,
-        location: location,
-        description: description,
-        title: selected,
-        content: null, // backend có thể để default null
-        published: false, // tuỳ theo logic backend
-        authorId: userId!,
+          problem,
+          location,
+          description,
+          title: selected,
+          content: null,
+          published: false,
+          userId: userId!,     // ✅ backend yêu cầu field này
       };
 
-      const createdPost = await addReport(postPayload);
-
-      // kiểm tra backend trả id
-      if (!createdPost || !createdPost.id) {
-        throw new Error('addPost không trả về id của post mới.');
+      const { report, suggestion } = await addReport(postPayload);
+      if (!report?.id) {
+        throw new Error('Server không trả về report.id');
       }
+      addBotMessage(suggestion || "Disconnected from AI Chat Bot.");
+      if (image) await uploadPostImage(report.id, image);
 
-      addBotMessage(createdPost.suggestion || "Disconnected from AI Chat Bot.");
-
-      // 2) Nếu có ảnh thì upload bằng id vừa tạo
-      if (image) {
-        // uploadPostImage(id, uri) — theo đúng API bạn mô tả
-        await uploadPostImage(createdPost.id, image);
-      }
 
       Alert.alert('Thành công', 'Report submitted successfully!');
       // reset form

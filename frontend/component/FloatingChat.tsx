@@ -113,7 +113,7 @@ export default function FloatingChat() {
 
           const closeZoneSize = 150;
           const closeZoneCenterX = width / 2;
-          const closeZoneCenterY = height - 40 - closeZoneSize / 2 + 70;
+          const closeZoneCenterY = height - 40 - closeZoneSize / 2 + 100;
 
           const distance = Math.hypot(
             bubbleCenterX - closeZoneCenterX,

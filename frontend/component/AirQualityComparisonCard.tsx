@@ -14,20 +14,20 @@ interface PollutantComparison {
 
 interface AirQualityComparisonCardProps {
   pollutants: {
-    pm25: number;
-    pm10: number;
+    temperature: number;
+    humidity: number;
+    nh3: number;
     no2: number;
-    o3: number;
     co: number;
   };
 }
 
 const HCM_AVERAGES = {
-  pm25: 32.5,   
-  pm10: 55,     
-  no2: 12.5,    
-  o3: 25,       
-  co: 0.75      
+  temperature: 27.5,
+  humidity: 78,
+  nh3: 0.02,
+  no2: 0.02,
+  co: 6    
 };
 
 const AirQualityComparisonCard: React.FC<AirQualityComparisonCardProps> = ({ pollutants }) => {
@@ -37,48 +37,48 @@ const AirQualityComparisonCard: React.FC<AirQualityComparisonCardProps> = ({ pol
   const comparisonData: PollutantComparison[] = [
     { 
       id: 1, 
-      type: 'PM2.5', 
-      value: pollutants.pm25,
-      unit: 'µg/m³', 
-      hcmValue: HCM_AVERAGES.pm25,
-      percentage: Math.round(((pollutants.pm25 - HCM_AVERAGES.pm25) / HCM_AVERAGES.pm25) * 100),
-      isBetter: pollutants.pm25 < HCM_AVERAGES.pm25
+      type: 'NH3', 
+      value: pollutants.nh3,
+      unit: 'ppm', 
+      hcmValue: HCM_AVERAGES.nh3,
+      percentage: Math.round(((pollutants.nh3 - HCM_AVERAGES.nh3) / HCM_AVERAGES.nh3) * 100),
+      isBetter: pollutants.nh3 < HCM_AVERAGES.nh3
     },
     { 
       id: 2, 
-      type: 'PM10', 
-      value: pollutants.pm10,
-      unit: 'µg/m³', 
-      hcmValue: HCM_AVERAGES.pm10,
-      percentage: Math.round(((pollutants.pm10 - HCM_AVERAGES.pm10) / HCM_AVERAGES.pm10) * 100),
-      isBetter: pollutants.pm10 < HCM_AVERAGES.pm10
-    },
-    { 
-      id: 3, 
-      type: 'NO₂', 
+      type: 'NO2', 
       value: pollutants.no2,
-      unit: 'ppb', 
+      unit: 'ppm', 
       hcmValue: HCM_AVERAGES.no2,
       percentage: Math.round(((pollutants.no2 - HCM_AVERAGES.no2) / HCM_AVERAGES.no2) * 100),
       isBetter: pollutants.no2 < HCM_AVERAGES.no2
     },
     { 
-      id: 4, 
-      type: 'O₃', 
-      value: pollutants.o3,
-      unit: 'ppb', 
-      hcmValue: HCM_AVERAGES.o3,
-      percentage: Math.round(((pollutants.o3 - HCM_AVERAGES.o3) / HCM_AVERAGES.o3) * 100),
-      isBetter: pollutants.o3 < HCM_AVERAGES.o3
-    },
-    { 
-      id: 5, 
+      id: 3, 
       type: 'CO', 
       value: pollutants.co,
       unit: 'ppm', 
       hcmValue: HCM_AVERAGES.co,
       percentage: Math.round(((pollutants.co - HCM_AVERAGES.co) / HCM_AVERAGES.co) * 100),
       isBetter: pollutants.co < HCM_AVERAGES.co
+    },
+    { 
+      id: 4, 
+      type: 'TEMPERATURE', 
+      value: pollutants.temperature,
+      unit: 'C', 
+      hcmValue: HCM_AVERAGES.temperature,
+      percentage: Math.round(((pollutants.temperature - HCM_AVERAGES.temperature) / HCM_AVERAGES.temperature) * 100),
+      isBetter: pollutants.temperature < HCM_AVERAGES.temperature
+    },
+    { 
+      id: 5, 
+      type: 'HUMIDITY', 
+      value: pollutants.humidity,
+      unit: '%', 
+      hcmValue: HCM_AVERAGES.humidity,
+      percentage: Math.round(((pollutants.humidity - HCM_AVERAGES.humidity) / HCM_AVERAGES.humidity) * 100),
+      isBetter: pollutants.humidity < HCM_AVERAGES.humidity
     },
   ];
 

@@ -183,7 +183,7 @@ export default function ReportDetail() {
       setCommentImage(null);
     } catch (e: any) {
       console.error('handleSendComment error:', e);
-      Alert.alert('Lỗi', e?.message || 'Gửi bình luận thất bại');
+      Alert.alert('Lỗi', e?.message || 'Send comment failed');
     } finally {
       setLoading(false);
     }
@@ -268,7 +268,7 @@ export default function ReportDetail() {
           )}
           ListEmptyComponent={
             <View className="items-center py-10">
-              <Text className="text-gray-500">Chưa có bình luận nào</Text>
+              <Text className="text-gray-500">There isn't any comment.</Text>
             </View>
           }
         />

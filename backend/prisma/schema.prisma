@@ -38,6 +38,11 @@ model User {
   BookingTable BookingTable[]
 
   Notification Notification[]
+
+  conversationsAsA Conversation[] @relation("ConvUserA")
+  conversationsAsB Conversation[] @relation("ConvUserB")
+  messages   Message[]
+  notifications2 Notification2[]
 }
 
 model Post {
@@ -102,10 +107,10 @@ model ElectricityData {
 model PollutionData {
   id          String   @id @default(cuid())
   period      DateTime
-  pm25        Float
-  pm10        Float
+  temperature Float @default(21.0)
+  humidity    Float @default(50.0)
+  nh3         Float @default(0.0)
   no2         Float
-  o3          Float
   co          Float
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -178,4 +183,58 @@ model Notification {
 
   @@index([userId, isRead, createdAt])
   @@unique([userId, type, refId, scheduledFor])
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+}
+
+model Conversation {
+  id             String   @id @default(cuid())
+  // Khóa duy nhất cho cặp người dùng; dạng: "<A>#<B>" với A<B (app đảm bảo)
+  participantKey String   @unique
+  userAId        String
+  userBId        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastMessageAt  DateTime?
+
+  userA          User     @relation("ConvUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB          User     @relation("ConvUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages       Message[]
+
+  @@index([userAId])
+  @@index([userBId])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String?
+  attachments    Json?
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+model Notification2 {
+  id             String           @id @default(cuid())
+  userId         String           // người nhận
+  type           NotificationType
+  title          String
+  body           String
+  conversationId String?
+  messageId      String?
+  createdAt      DateTime         @default(now())
+  readAt         DateTime?
+
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([conversationId])
 }

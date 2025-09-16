@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import NotificationItem from '@/component/NotificationItem';
 import type { NotificationDto } from '@/service/notificationService';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useUnifiedNotifications } from '@/hooks/useUnifiedNotifications';
 import { useCurrentUser } from '@/hooks/useCurentUser';
 
 export default function NotificationsScreen() {
@@ -29,12 +29,12 @@ export default function NotificationsScreen() {
     markRead,
     markAll,
     unreadCount,
-  } = useNotifications({ userId: userId!, mode });
+  } = useUnifiedNotifications({ userId: user?.id, mode });
 
   // mở item → đánh dấu đã đọc + điều hướng theo type
   const openItem = useCallback(
     async (n: NotificationDto) => {
-      if (!n.isRead) await markRead(n.id);
+      if (!n.isRead) await markRead(n);
       if (n.type === 'POST_NEW' && n.refId) {
         nav.navigate('PostDetail', { id: n.refId });
       } else if ((n.type === 'BOOKING_START' || n.type === 'BOOKING_REMINDER_15M') && n.refId) {
@@ -88,7 +88,7 @@ export default function NotificationsScreen() {
             className={`px-3 py-1 rounded-full ${mode === 'unread' ? 'bg-indigo-600' : 'bg-slate-100'}`}
           >
             <Text className={`${mode === 'unread' ? 'text-white' : 'text-slate-700'}`}>
-              Chưa đọc{unreadCount ? ` (${unreadCount})` : ''}
+              Haven't read yet{unreadCount ? ` (${unreadCount})` : ''}
             </Text>
           </Pressable>
           <Pressable
