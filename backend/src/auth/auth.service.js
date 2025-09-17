@@ -21,21 +21,19 @@ export const registerUser = async (email, password, name) => {
 };
 
 export const loginUser = async (email, password) => {
-    const user = await prisma.user.findUnique({
-        where: { email },
-    });
-    
-    if (!user) {
-        throw new Error('User not found');
-    }
-    
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-        throw new Error('Invalid password');
-    }
-    
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
-    const { password: _, ...userWithoutPassword } = user;
-    
-    return { user: userWithoutPassword, token };
+  const user = await prisma.user.findFirst({
+    where: {
+      email: { equals: email.trim(), mode: 'insensitive' },
+    },
+  });
+
+  if (!user) throw new Error('User not found');
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) throw new Error('Invalid password');
+
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+  const { password: _pw, ...userWithoutPassword } = user;
+  return { user: userWithoutPassword, token };
 };
+
