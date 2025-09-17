@@ -1,192 +1,137 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ImageBackground,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
-import { getAllAirData, deleteAirData } from "@/service/airService";
-import { format } from "date-fns";
+import { ScrollView, View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import React, { useState, useEffect } from "react";
+import { getAllAirData } from "@/service/airService";
 import { MaterialIcons } from "@expo/vector-icons";
+import { calculateDangerScore } from "@/utils/dangerScore";
+import { formatHourDate } from "@/utils/time";
+import { useRouter } from "expo-router";
 
-interface AirData {
-  id: string;
-  period: string;
-  pm25: number;
-  pm10: number;
+type AirItem = {
+  nh3: number;
   no2: number;
-  o3: number;
   co: number;
-}
-
-const calculateDangerScore = (data: AirData): number => {
-  let sum = 0;
-  sum += Math.min(20, (data.pm25 * 20) / 55);
-  sum += Math.min(20, (data.pm10 * 20) / 254);
-  sum += Math.min(20, (data.no2 * 20) / 360);
-  sum += Math.min(20, (data.o3 * 20) / 85);
-  sum += Math.min(20, (data.co * 20) / 12.4);
-  return Math.round(sum * 10) / 10;
+  temperature?: number;
+  humidity?: number;
+  period?: string;
+  timestamp?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  // (chấp nhận field cũ để khỏi lỗi TS nếu API chưa đồng bộ, nhưng KHÔNG dùng để tính điểm)
+  pm25?: number;
+  pm10?: number;
+  o3?: number;
+  createAt?: string;
+  updateAt?: string;
 };
 
-const AirList = () => {
-  const [data, setData] = useState<AirData[]>([]);
+export default function AirList() {
+  const [airData, setAirData] = useState<AirItem[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [deleteMode, setDeleteMode] = useState(false);
   const router = useRouter();
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await getAllAirData();
-      setData(res);
-    } catch (err) {
-      console.error("Failed to fetch air data:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const pushAirDetail = (obj: any) => {
+    const payload = encodeURIComponent(JSON.stringify(obj));
+    router.push({ pathname: '/data/airDetail', params: { payload } });
+  };
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const fetchAirData = async () => {
+      try {
+        const data = await getAllAirData();
+        setAirData(data as AirItem[]);
+      } catch (error) {
+        console.error("Error fetching air data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAirData();
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [fetchData])
-  );
+  const getAirQualityLevelRow = (item: AirItem) => {
+    // Tính Danger Score theo nh3/no2/co
+    const score = calculateDangerScore({
+      nh3: Number(item?.nh3 ?? 0),
+      no2: Number(item?.no2 ?? 0),
+      co: Number(item?.co ?? 0),
+    });
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  }, [fetchData]);
+    let level = "";
+    let color = "";
+    if (score <= 19)       { level = "Excellent";             color = "text-green-500"; }
+    else if (score <= 39)  { level = "Good";                  color = "text-lime-500"; }
+    else if (score <= 59)  { level = "Moderate";              color = "text-yellow-500"; }
+    else if (score <= 74)  { level = "Unhealthy (Sensitive)"; color = "text-orange-500"; }
+    else if (score <= 89)  { level = "Unhealthy";             color = "text-red-500"; }
+    else if (score <= 99)  { level = "Very Unhealthy";        color = "text-red-600"; }
+    else                   { level = "Hazardous";             color = "text-red-800"; }
 
-  const confirmDelete = (id: string) => {
-    Alert.alert("Are you sure?", "This will permanently delete the record.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteAirData(id);
-            setData((prev) => prev.filter((item) => item.id !== id));
-          } catch (err) {
-            console.error("Failed to delete air data:", err);
-          }
-        },
-      },
-    ]);
+    // Lấy thời điểm hiển thị: ưu tiên period → timestamp → updatedAt → createdAt (và bản cũ)
+    const when =
+      item?.period ??
+      item?.timestamp ??
+      item?.updatedAt ??
+      item?.createAt ??
+      item?.updateAt ??
+      item?.createdAt ??
+      "";
+
+    return (
+      <View className="flex-row justify-between items-center w-full p-5 border-b border-gray-200">
+        <Text className="text-base text-gray-400 italic">
+          {when ? formatHourDate(when) : "N/A"}
+        </Text>
+        <Text className="text-base text-gray-800">{score}</Text>
+        <Text className={`text-base font-medium ${color}`}>{level}</Text>
+      </View>
+    );
   };
 
   return (
     <ImageBackground
       source={require("@/assets/images/bg_main.png")}
-      className="flex-1"
+      className="flex-1 p-4"
       resizeMode="stretch"
     >
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-12 pb-4">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="p-2 rounded-full bg-white/20"
-        >
+      <View className="flex-row items-center justify-between pt-12 pb-4">
+        <TouchableOpacity onPress={() => router.back()} className="p-2 rounded-full bg-white/20">
           <MaterialIcons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-white">Air Quality</Text>
-        <View className="flex-row">
-          <TouchableOpacity
-            onPress={() => router.push("/data/addAir")}
-            className="p-2 rounded-full bg-white/20 mr-2"
-          >
-            <MaterialIcons name="add" size={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setDeleteMode((v) => !v)}
-            className="p-2 rounded-full bg-white/20"
-          >
-            <MaterialIcons
-              name={deleteMode ? "close" : "delete"}
-              size={24}
-              color="white"
-            />
-          </TouchableOpacity>
+        <Text className="text-2xl font-bold text-white">Pollution Data</Text>
+        <View className="w-10" />
+      </View>
+
+      {/* Header row của bảng */}
+      <View className="flex-row justify-between items-center p-4 px-6 border-b border-gray-700 bg-white rounded-s-lg">
+        <Text className="text-sm text-gray-500">Last Updated</Text>
+        <Text className="text-sm text-gray-500">Danger Score</Text>
+        <Text className="text-sm text-gray-500">Air Quality Level</Text>
+      </View>
+
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <Text className="mt-8 text-lg text-gray-600">Loading air quality data...</Text>
         </View>
-      </View>
-
-      {/* Table header */}
-      <View className="flex-row justify-between items-center p-4 border-b border-gray-800 bg-white pr-9 mx-4 mt-4 rounded-s-xl">
-        <Text className="text-lg font-bold">Period</Text>
-        <Text className="text-gray-600">Danger Score</Text>
-      </View>
-
-      {/* List */}
-      <ScrollView
-        className="flex-1 bg-white mx-4 mb-6 rounded-b-xl"
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {loading ? (
-          <View className="flex-1 items-center justify-center py-10">
-            <ActivityIndicator size="large" />
-          </View>
-        ) : (
-          <>
-            {data.map((item) => {
-              const score = calculateDangerScore(item);
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  className="flex-row justify-between items-center p-4 border-b border-gray-200"
-                  onPress={() => {
-                    if (!deleteMode) {
-                      router.push({
-                        pathname: "/data/airDetail",
-                        params: { item: JSON.stringify(item) },
-                      });
-                    }
-                  }}
-                >
-                  <View className="flex-row items-center">
-                    {deleteMode && (
-                      <TouchableOpacity
-                        onPress={() => confirmDelete(item.id)}
-                        className="w-6 h-6 mr-3 rounded-full bg-red-500 items-center justify-center"
-                      >
-                        <Text className="text-white font-bold">-</Text>
-                      </TouchableOpacity>
-                    )}
-                    <Text className="text-base font-semibold text-gray-700">
-                      {format(new Date(item.period), "MM/yyyy")}
-                    </Text>
-                  </View>
-                  <Text
-                    className={`text-base font-bold ${
-                      score > 70
-                        ? "text-red-600"
-                        : score > 40
-                        ? "text-yellow-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {score}/100
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </>
-        )}
-      </ScrollView>
+      ) : !airData || airData.length === 0 ? (
+        <View className="flex-1 justify-center items-center p-4">
+          <Text className="text-lg text-gray-600 text-center">No air quality data available.</Text>
+        </View>
+      ) : (
+        <ScrollView
+          className="flex bg-white p-2 rounded-b-lg"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 24 }}
+        >
+          {airData.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => pushAirDetail(item)}
+            >
+              {getAirQualityLevelRow(item)}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
     </ImageBackground>
   );
-};
-
-export default AirList;
+}

@@ -1,226 +1,95 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, ImageBackground, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useMemo } from "react";
+import { View, Text } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { calculateDangerScore } from "@/utils/dangerScore";
 
-interface PollutantComparison {
-  id: number;
-  type: string;
-  value: number;
-  unit: string;
-  hcmValue: number;
-  percentage: number;
-  isBetter: boolean;
-}
-
-interface AirQualityComparisonCardProps {
-  pollutants: {
-    pm25: number;
-    pm10: number;
-    no2: number;
-    o3: number;
-    co: number;
-  };
-}
-
-const HCM_AVERAGES = {
-  pm25: 32.5,   
-  pm10: 55,     
-  no2: 12.5,    
-  o3: 25,       
-  co: 0.75      
+type AirCore = {
+  nh3: number;
+  no2: number;
+  co: number;
+  temperature?: number; // °C
+  humidity?: number;    // %
 };
 
-const AirQualityComparisonCard: React.FC<AirQualityComparisonCardProps> = ({ pollutants }) => {
-  const slideAnim = useRef(new Animated.Value(-100)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  
-  const comparisonData: PollutantComparison[] = [
-    { 
-      id: 1, 
-      type: 'PM2.5', 
-      value: pollutants.pm25,
-      unit: 'µg/m³', 
-      hcmValue: HCM_AVERAGES.pm25,
-      percentage: Math.round(((pollutants.pm25 - HCM_AVERAGES.pm25) / HCM_AVERAGES.pm25) * 100),
-      isBetter: pollutants.pm25 < HCM_AVERAGES.pm25
-    },
-    { 
-      id: 2, 
-      type: 'PM10', 
-      value: pollutants.pm10,
-      unit: 'µg/m³', 
-      hcmValue: HCM_AVERAGES.pm10,
-      percentage: Math.round(((pollutants.pm10 - HCM_AVERAGES.pm10) / HCM_AVERAGES.pm10) * 100),
-      isBetter: pollutants.pm10 < HCM_AVERAGES.pm10
-    },
-    { 
-      id: 3, 
-      type: 'NO₂', 
-      value: pollutants.no2,
-      unit: 'ppb', 
-      hcmValue: HCM_AVERAGES.no2,
-      percentage: Math.round(((pollutants.no2 - HCM_AVERAGES.no2) / HCM_AVERAGES.no2) * 100),
-      isBetter: pollutants.no2 < HCM_AVERAGES.no2
-    },
-    { 
-      id: 4, 
-      type: 'O₃', 
-      value: pollutants.o3,
-      unit: 'ppb', 
-      hcmValue: HCM_AVERAGES.o3,
-      percentage: Math.round(((pollutants.o3 - HCM_AVERAGES.o3) / HCM_AVERAGES.o3) * 100),
-      isBetter: pollutants.o3 < HCM_AVERAGES.o3
-    },
-    { 
-      id: 5, 
-      type: 'CO', 
-      value: pollutants.co,
-      unit: 'ppm', 
-      hcmValue: HCM_AVERAGES.co,
-      percentage: Math.round(((pollutants.co - HCM_AVERAGES.co) / HCM_AVERAGES.co) * 100),
-      isBetter: pollutants.co < HCM_AVERAGES.co
-    },
-  ];
+type Props = {
+  current: AirCore;
+  city?: string;     // default: "HCM"
+  baseline?: AirCore; // optional: override baseline
+  className?: string;
+};
 
-  const betterCount = comparisonData.filter(item => item.isBetter).length;
-  const overallPercentage = Math.round((betterCount / comparisonData.length) * 100);
+// ❗ Baseline GIẢ ĐỊNH (demo) cho HCM – có thể thay đổi sau nếu có số liệu thực.
+const HCM_ASSUMED_BASELINE: AirCore = {
+  nh3: 12.0,    // ppm (assumed)
+  co:  10.0,    // ppm (assumed)
+  no2: 1.2,     // ppm (assumed)
+  temperature: 30, // °C (assumed)
+  humidity: 70,    // % (assumed)
+};
 
-  const itemAnimations = useRef(
-    comparisonData.map(() => ({
-      opacity: new Animated.Value(0),
-      translateY: new Animated.Value(20)
-    }))
-  ).current;
+const deltaPct = (cur: number, base: number) => {
+  if (!isFinite(cur) || !isFinite(base) || base === 0) return null;
+  return ((cur - base) / base) * 100;
+};
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-        delay: 300
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-        delay: 300
-      })
-    ]).start();
-    
-    comparisonData.forEach((_, index) => {
-      Animated.parallel([
-        Animated.timing(itemAnimations[index].opacity, {
-          toValue: 1,
-          duration: 600,
-          delay: 600 + index * 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(itemAnimations[index].translateY, {
-          toValue: 0,
-          duration: 600,
-          delay: 600 + index * 150,
-          useNativeDriver: true,
-        })
-      ]).start();
-    });
-  }, []);
+const Arrow = ({ d }: { d: number | null }) => {
+  if (d === null) return <MaterialIcons name="horizontal-rule" size={16} color="#6B7280" />;
+  if (d > 1) return <MaterialIcons name="arrow-upward" size={16} color="#ef4444" />;
+  if (d < -1) return <MaterialIcons name="arrow-downward" size={16} color="#22c55e" />;
+  return <MaterialIcons name="arrow-right-alt" size={16} color="#6B7280" />;
+};
+
+const Line = ({ label, cur, base, unit }: { label: string; cur: number | undefined; base: number | undefined; unit: string }) => {
+  const d = deltaPct(Number(cur ?? NaN), Number(base ?? NaN));
+  const prettyDelta = d === null ? "—" : `${d > 0 ? "+" : ""}${d.toFixed(1)}%`;
 
   return (
-    <View className="w-full max-w-md rounded-3xl overflow-hidden shadow-xl relative">
-      <ImageBackground
-        source={require('@/assets/images/HCMcity.jpg')}
-        className="w-full h-64"
-        resizeMode="cover"
-      >
-        <View className="absolute inset-0 bg-black/70" />
-        
-        <View className="p-6 absolute bottom-4 left-0 right-0">
-          <View className="flex-row justify-between items-end">
-            <View>
-              <Text className="text-white text-sm font-light">Ho Chi Minh City</Text>
-              <Text className="text-white text-2xl font-bold mt-1">Financial Hub of Vietnam</Text>
-              <Text className="text-white text-sm font-light mt-2 max-w-[70%]">
-                Vietnam's largest metropolis faces significant air pollution challenges
-              </Text>
-            </View>
-            <View className="items-end">
-              <Text className="text-green-400 text-4xl font-extrabold">
-                {overallPercentage}%
-              </Text>
-              <Text className="text-green-400 text-xl font-bold">Better</Text>
-            </View>
-          </View>
-        </View>
-      </ImageBackground>
-
-      <Animated.View 
-        className="p-6 bg-slate-900"
-        style={{
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }]
-        }}
-      >
-        <View className="mb-6 ">
-          <Text className="text-2xl font-bold text-center text-white">Air Quality Comparison</Text>
-          <Text className="text-gray-500 text-center mt-2">
-            Your location vs Ho Chi Minh City
-          </Text>
-        </View>
-        
-        <View className="space-y-4">
-          {comparisonData.map((item, index) => {
-            const bgColor = item.isBetter ? 'bg-green-50' : 'bg-red-50';
-            const borderColor = item.isBetter ? 'border-green-300' : 'border-red-300';
-            const textColor = item.isBetter ? 'text-green-600' : 'text-red-600';
-            const sign = item.percentage > 0 ? '+' : '';
-            
-            return (
-              <Animated.View
-                key={item.id}
-                className={`flex-row items-center justify-between p-4 rounded-2xl border ${borderColor} ${bgColor}`}
-                style={{
-                  opacity: itemAnimations[index].opacity,
-                  transform: [{ translateY: itemAnimations[index].translateY }]
-                }}
-              >
-                <View>
-                  <Text className="text-lg font-bold">{item.type}</Text>
-                  <Text className="text-gray-500 text-sm">{item.unit}</Text>
-                </View>
-                
-                <View className="items-center">
-                  <Text className="text-lg font-bold">{item.value.toFixed(1)}</Text>
-                  <Text className="text-gray-500 text-sm">Your location</Text>
-                </View>
-                
-                <View className="items-center">
-                  <Text className="text-lg font-bold">{item.hcmValue.toFixed(1)}</Text>
-                  <Text className="text-gray-500 text-sm">HCM Average</Text>
-                </View>
-                
-                <View className="items-end">
-                  <Text className={`text-lg font-bold ${textColor}`}>
-                    {sign}{item.percentage}%
-                  </Text>
-                  <View className="flex-row items-center">
-                    <Ionicons 
-                      name={item.isBetter ? "arrow-down" : "arrow-up"} 
-                      size={16} 
-                      color={item.isBetter ? "#10B981" : "#EF4444"} 
-                    />
-                    <Text className={`text-sm ml-1 ${textColor}`}>
-                      {item.isBetter ? "Better" : "Worse"}
-                    </Text>
-                  </View>
-                </View>
-              </Animated.View>
-            );
-          })}
-        </View>
-      </Animated.View>
+    <View className="flex-row justify-between items-center py-1">
+      <Text className="text-gray-700">{label}</Text>
+      <View className="flex-row items-center">
+        <Text className="text-gray-900 font-semibold mr-2">
+          {isFinite(Number(cur)) ? `${Number(cur).toFixed(3)} ${unit}` : "N/A"}
+        </Text>
+        <Arrow d={d} />
+        <Text className="text-gray-600 ml-1">{prettyDelta}</Text>
+      </View>
     </View>
   );
 };
 
-export default AirQualityComparisonCard;
+export default function AirQualityComparisonCard({ current, baseline, city = "HCM", className }: Props) {
+  const base = baseline ?? HCM_ASSUMED_BASELINE;
+
+  const currentScore  = useMemo(() => calculateDangerScore({ nh3: current.nh3, no2: current.no2, co: current.co }), [current]);
+  const baselineScore = useMemo(() => calculateDangerScore({ nh3: base.nh3,    no2: base.no2,    co: base.co    }), [base]);
+  const deltaScorePct = deltaPct(currentScore, baselineScore);
+
+  return (
+    <View className={`bg-white rounded-2xl border border-gray-200 p-4 ${className ?? ""}`}>
+      <Text className="text-lg font-bold text-gray-900">
+        Compare with {city} Baseline
+      </Text>
+
+      <View className="mt-3">
+        <Line label="NH₃" cur={current.nh3} base={base.nh3} unit="ppm" />
+        <Line label="CO"  cur={current.co}  base={base.co}  unit="ppm" />
+        <Line label="NO₂" cur={current.no2} base={base.no2} unit="ppm" />
+        <Line label="Temp." cur={current.temperature} base={base.temperature} unit="°C" />
+        <Line label="Humidity" cur={current.humidity} base={base.humidity} unit="%" />
+      </View>
+
+      <View className="mt-3 pt-3 border-t border-gray-200">
+        <Text className="text-gray-700">
+          Danger Score: <Text className="font-semibold text-gray-900">{currentScore}</Text>{" "}
+          vs baseline <Text className="font-semibold text-gray-900">{baselineScore}</Text>{" "}
+          <Text className="text-gray-600">
+            ({deltaScorePct === null ? "—" : `${deltaScorePct > 0 ? "+" : ""}${deltaScorePct.toFixed(1)}%`})
+          </Text>
+        </Text>
+        <Text className="text-[11px] text-gray-500 mt-1">
+          * Baseline assumed for interface comparison only, does not reflect actual monitoring data.
+        </Text>
+      </View>
+    </View>
+  );
+}

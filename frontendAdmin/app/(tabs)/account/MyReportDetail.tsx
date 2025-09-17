@@ -226,7 +226,7 @@ export default function ReportDetail() {
 
               <Text className="text-sm mt-4 text-black">{reportData?.problem}</Text>
               <Text className="text-sm text-gray-600">{reportData?.location}</Text>
-              <Text>{reportData?.description}</Text>
+              <Text className="text-gray-700">{reportData?.description}</Text>
               <Text className="text-blue-500">{`#${reportData?.title}`}</Text>
               {!!reportData?.image && (
                 <Image source={{ uri: reportData.image }} className="w-full aspect-[16/9] mt-2" />
@@ -268,7 +268,7 @@ export default function ReportDetail() {
           )}
           ListEmptyComponent={
             <View className="items-center py-10">
-              <Text className="text-gray-500">Chưa có bình luận nào</Text>
+              <Text className="text-gray-500">There isn't any comment.</Text>
             </View>
           }
         />
@@ -297,6 +297,7 @@ export default function ReportDetail() {
               value={input}
               onChangeText={setInput}
               placeholder="Write a comment..."
+              placeholderTextColor="#9ca3af"
               className="flex-1 bg-gray-50 p-2 px-4 border border-gray-300 rounded-full text-gray-700"
               returnKeyType="send"
               onSubmitEditing={handleSendComment}

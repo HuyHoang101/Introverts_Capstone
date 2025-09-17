@@ -50,7 +50,7 @@ const Row = ({
 }) => {
   const progress = score33 / 33;
   const color = barColor(progress);
-  const warn = typeof warnAt === "number" && score33 >= warnAt;
+  const warn = typeof warnAt === "number" && value >= warnAt;
 
   return (
     <View className="w-full mb-4">

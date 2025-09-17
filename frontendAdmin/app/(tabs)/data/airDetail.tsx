@@ -1,121 +1,133 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
-import CircularProgress from '@/component/CircularProgress';
-import PollutantList from '@/component/PollurtantList';
-import { calculateDangerScore } from '@/utils/dangerScore';
-import { useLocalSearchParams } from 'expo-router';
+import React, { useMemo } from "react";
+import { View, Text, TouchableOpacity, ImageBackground, ScrollView } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { calculateDangerScore } from "@/utils/dangerScore";
+import PollutantList from "@/component/PollurtantList";
+import AirQualityComparisonCard from "@/component/AirQualityComparisonCard";
+import DangerGauge from "@/component/DangerGauge";
 
-
-interface PollutantData {
-  pm25: number;
-  pm10: number;
+type AirItem = {
+  nh3: number;
   no2: number;
-  o3: number;
   co: number;
+  temperature?: number; // °C
+  humidity?: number;    // %
+  period?: string;
   timestamp?: string;
-}
+  createdAt?: string;
+  updatedAt?: string;
 
-export default function Mission() {
-  const [dangerScore, setDangerScore] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const { item } = useLocalSearchParams<{ item?: string }>();
-  const parsedData = typeof item === 'string' ? JSON.parse(item) : {};
-  // const [pollutants, setPollutants] = useState<PollutantData>({
-  //   pm25: 0,
-  //   pm10: 0,
-  //   no2: 0,
-  //   o3: 0,
-  //   co: 0,
-  //   timestamp: ''
-  // });
+  // legacy fields (để tránh crash nếu data cũ lọt vào):
+  pm25?: number;
+  pm10?: number;
+  o3?: number;
+  createAt?: string;
+  updateAt?: string;
+};
 
-  // useEffect (() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const data = await getAllAirData();
-  //       if (data.length > 0) {
-  //         setPollutants(data[0]);
-  //       }
-  //     } catch (error) {
-  //       console.error('Fail to fetch air data', error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+const getLevel = (score: number) => {
+  if (score <= 19) return { label: "Excellent", color: "#22c55e" };
+  if (score <= 39) return { label: "Good", color: "#84cc16" };
+  if (score <= 59) return { label: "Moderate", color: "#eab308" };
+  if (score <= 74) return { label: "Unhealthy (Sensitive)", color: "#f97316" };
+  if (score <= 89) return { label: "Unhealthy", color: "#ef4444" };
+  if (score <= 99) return { label: "Very Unhealthy", color: "#dc2626" };
+  return { label: "Hazardous", color: "#7f1d1d" };
+};
 
-  //   fetchData();
-  // },[]);
-  useEffect(() => {
+export default function AirDetail() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  // nhận cả 'payload' (mới) lẫn 'data' (cũ) để backward-compatible
+  const rawParam = (params?.payload ?? params?.data) as string | undefined;
+
+  const item = useMemo(() => {
+    if (!rawParam) return null;
+    const tryStrings: string[] = [];
+
+    // 1) thử decodeURIComponent
     try {
-      const parsedData = typeof item === 'string' ? JSON.parse(item) : item;
-
-      if (!parsedData || typeof parsedData.pm25 === 'undefined') {
-        throw new Error('Invalid data received');
-      }
-
-      const score = calculateDangerScore(parsedData);
-      setDangerScore(score);
-
-      // fake loading
-      const timer = setTimeout(() => setLoading(false), 2000);
-      return () => clearTimeout(timer);
-    } catch (err: any) {
-      setError(err.message || 'Unknown error');
-      setLoading(false);
+      tryStrings.push(decodeURIComponent(rawParam));
+    } catch {
+      // không decode được thì dùng nguyên bản
+      tryStrings.push(rawParam);
     }
+
+    for (const s of tryStrings) {
+      try {
+        return JSON.parse(s);
+      } catch {
+        // thử tiếp cách khác nếu cần
+      }
+    }
+    return null;
+  }, [rawParam]);
+
+  // Adapter an toàn nếu thiếu field mới
+  const current = useMemo<AirItem>(() => {
+    const nh3 = Number(item?.nh3 ?? 0);
+    const no2 = Number(item?.no2 ?? 0);
+    const co  = Number(item?.co  ?? 0);
+    const temperature = typeof item?.temperature === "number" ? item?.temperature : undefined;
+    const humidity    = typeof item?.humidity === "number" ? item?.humidity : undefined;
+    return { nh3, no2, co, temperature, humidity, period: item?.period ?? item?.timestamp };
   }, [item]);
 
-  const handleRetry = () => {
-    setError(null);
-    setLoading(true);
-  };
+  const score = useMemo(() => calculateDangerScore({ nh3: current.nh3, no2: current.no2, co: current.co }), [current]);
+  const level = useMemo(() => getLevel(score), [score]);
 
   return (
     <ImageBackground
-      source={require('@/assets/images/bg_main.png')}
-      className="flex-1"
+      source={require("@/assets/images/bg_main.png")}
+      className="flex-1 p-4"
       resizeMode="stretch"
-    > 
-      <View className="absolute inset-0 bg-white/50" />
-      <Text className='font-bold text-4xl mb-14'>Danger Score</Text>
-      
-      {loading ? (
-        <View className='flex-1 justify-center items-center'>
-          <ActivityIndicator size="large" />
-          <Text className='mt-8 text-lg text-gray-600'>
-            Calculating danger score...
-          </Text>
-        </View>
-      ) : error ? (
-        <View className='flex-1 justify-center items-center p-4'>
-          <Text className='text-lg text-red-500 mb-4 text-center'>
-            {error}
-          </Text>
-          <TouchableOpacity
-            className='bg-blue-500 py-3 px-6 rounded-full'
-            onPress={handleRetry}
-          >
-            <Text className='text-white font-bold'>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View className='flex-1 '>
-          <View className='items-center z-10 mb-4'>
-            <CircularProgress percentage={dangerScore} />
+    >
+      {/* Header cố định */}
+      <View className="flex-row items-center justify-between pt-8 pb-4">
+        <TouchableOpacity onPress={() => router.back()} className="p-2 rounded-full bg-white/20">
+          <MaterialIcons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text className="text-2xl font-bold text-white">Air Detail</Text>
+        <View className="w-10" />
+      </View>
+
+      {/* Nội dung có thể SCROLL */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 28 }}
+      >
+        {/* Summary Card */}
+        <View className="bg-white rounded-2xl border border-gray-200 p-4 mx-1">
+          <Text className="text-lg font-bold text-gray-900">Danger Score</Text>
+          <View className="flex-row items-center mt-3">
+            {/* CHANGED: thay Progress.Circle -> DangerGauge */}
+            <DangerGauge score={score} size={92} thickness={10} />
+            <View className="ml-5">
+              <Text className="text-xl font-semibold" style={{ color: level.color }}>
+                {level.label}
+              </Text>
+              <Text className="text-gray-600 mt-2">
+                🌡️ Temperature: <Text className="font-semibold text-gray-900">
+                  {typeof current.temperature === "number" ? `${current.temperature}°C` : "N/A"}
+                </Text>
+              </Text>
+              <Text className="text-gray-600 mt-1">
+                💧 Humidity: <Text className="font-semibold text-gray-900">
+                  {typeof current.humidity === "number" ? `${current.humidity}%` : "N/A"}
+                </Text>
+              </Text>
+              {current.period ? (
+                <Text className="text-gray-500 mt-1">Updated: {current.period}</Text>
+              ) : null}
+            </View>
           </View>
-          
-          <ScrollView className='flex-1' showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 8}}>
-            <PollutantList 
-              pm25={parsedData.pm25}
-              pm10={parsedData.pm10}
-              no2={parsedData.no2}
-              o3={parsedData.o3}
-              co={parsedData.co}
-            />
-          </ScrollView>
         </View>
-      )}
+
+        {/* Breakdown + So sánh */}
+        <PollutantList data={current} className="mt-4 mx-1" />
+        <AirQualityComparisonCard current={current} className="mt-4 mx-1" />
+      </ScrollView>
     </ImageBackground>
   );
 }

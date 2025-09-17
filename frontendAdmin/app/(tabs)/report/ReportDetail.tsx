@@ -258,7 +258,7 @@ export default function ReportDetail() {
       setCommentImage(null);
     } catch (e: any) {
       console.error('handleSendComment error:', e);
-      Alert.alert('Lỗi', e?.message || 'Gửi bình luận thất bại');
+      Alert.alert('Error', e?.message || 'Failed to send comment.');
     } finally {
       setLoading(false);
     }
@@ -431,6 +431,7 @@ export default function ReportDetail() {
               value={input}
               onChangeText={setInput}
               placeholder="Write a comment..."
+              placeholderTextColor="#9ca3af"
               className="flex-1 bg-gray-50 p-2 px-4 border border-gray-300 rounded-full text-gray-700"
               returnKeyType="send"
               onSubmitEditing={handleSendComment}

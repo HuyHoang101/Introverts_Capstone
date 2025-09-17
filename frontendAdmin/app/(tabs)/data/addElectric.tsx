@@ -52,17 +52,17 @@ export default function AddElectricScreen() {
           <MaterialIcons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <View className="w-full items-center">
-          <Text className="text-xl font-bold">Add Electricity Data</Text>
+          <Text className="text-xl font-bold text-black">Add Electricity Data</Text>
         </View>
       </View>
 
       {/* Period */}
-      <Text className="text-base mb-2">Period (Date):</Text>
+      <Text className="text-base mb-2 text-black">Period (Date):</Text>
       <TouchableOpacity
         className="border border-gray-300 rounded-lg p-3 mb-4"
         onPress={() => setShowDatePicker(true)}
       >
-        <Text>{period.toLocaleDateString("vi-VN")}</Text>
+        <Text className="text-gray-800">{period.toLocaleDateString("vi-VN")}</Text>
       </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
@@ -77,41 +77,45 @@ export default function AddElectricScreen() {
       )}
 
       {/* Total */}
-      <Text className="text-base mb-2">Total (kWh):</Text>
+      <Text className="text-base mb-2 text-black">Total (kWh):</Text>
       <TextInput
-        className="border border-gray-300 rounded-lg p-3 mb-4"
+        className="border border-gray-300 rounded-lg p-3 mb-4 text-black"
         keyboardType="numeric"
         placeholder="Nhập tổng điện"
+        placeholderTextColor="#9ca3af"
         value={total}
         onChangeText={setTotal}
       />
 
       {/* Low */}
-      <Text className="text-base mb-2">Low (kWh):</Text>
+      <Text className="text-base mb-2 text-black">Low (kWh):</Text>
       <TextInput
-        className="border border-gray-300 rounded-lg p-3 mb-4"
+        className="border border-gray-300 rounded-lg p-3 mb-4 text-black"
         keyboardType="numeric"
         placeholder="Nhập điện giờ thấp điểm"
+        placeholderTextColor="#9ca3af"
         value={low}
         onChangeText={setLow}
       />
 
       {/* Medium */}
-      <Text className="text-base mb-2">Medium (kWh):</Text>
+      <Text className="text-base mb-2 text-black">Medium (kWh):</Text>
       <TextInput
-        className="border border-gray-300 rounded-lg p-3 mb-4"
+        className="border border-gray-300 rounded-lg p-3 mb-4 text-black"
         keyboardType="numeric"
         placeholder="Nhập điện giờ trung bình"
+        placeholderTextColor="#9ca3af"
         value={medium}
         onChangeText={setMedium}
       />
 
       {/* High */}
-      <Text className="text-base mb-2">High (kWh):</Text>
+      <Text className="text-base mb-2 text-black">High (kWh):</Text>
       <TextInput
-        className="border border-gray-300 rounded-lg p-3 mb-4"
+        className="border border-gray-300 rounded-lg p-3 mb-4 text-black"
         keyboardType="numeric"
         placeholder="Nhập điện giờ cao điểm"
+        placeholderTextColor="#9ca3af"
         value={high}
         onChangeText={setHigh}
       />

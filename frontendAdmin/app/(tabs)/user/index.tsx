@@ -57,14 +57,14 @@ export default function UserListScreen() {
   }, []);
 
   const loadUsers = async () => {
-  try {
-    console.log("Fetching users...");
-    const data = await getAllUsers();
-    setAllUsers(data);
-  } catch (err: any) {
-    console.error("Fetch users error:", err?.response || err?.message || err);
-  }
-};
+    try {
+      console.log("Fetching users...");
+      const data = await getAllUsers();
+      setAllUsers(data);
+    } catch (err: any) {
+      console.error("Fetch users error:", err?.response || err?.message || err);
+    }
+  };
 
   // Mở modal Add
   const openAddUserModal = () => {
@@ -194,13 +194,13 @@ export default function UserListScreen() {
 
   // Filter + Pagination
   const filteredUsers = allUsers
-  .filter((u) => u.role !== "ADMIN") // loại bỏ ADMIN
-  .filter(
-    (u) =>
-      u.name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase()) ||
-      u.phone?.toLowerCase().includes(search.toLowerCase())
-  );
+    .filter((u) => u.role !== "ADMIN") // loại bỏ ADMIN
+    .filter(
+      (u) =>
+        u.name?.toLowerCase().includes(search.toLowerCase()) ||
+        u.email?.toLowerCase().includes(search.toLowerCase()) ||
+        u.phone?.toLowerCase().includes(search.toLowerCase())
+    );
   const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
   const usersToDisplay = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -238,7 +238,7 @@ export default function UserListScreen() {
       <ScrollView className="flex-1 bg-white p-4">
         {/* Header */}
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-3xl font-bold">Users</Text>
+          <Text className="text-3xl font-bold text-black">Users</Text>
           <TouchableOpacity onPress={openAddUserModal} className="p-1 bg-blue-500 rounded-full">
             <MaterialIcons name="add" size={24} color="white" />
           </TouchableOpacity>
@@ -247,9 +247,9 @@ export default function UserListScreen() {
         {/* Search */}
         <TextInput
           placeholder="Search by name, email or phone..."
-          placeholderTextColor={"gray"}
+          placeholderTextColor={"#9ca3af"}
           style={{ fontStyle: "italic" }}
-          className="border border-gray-300 rounded-lg px-4 py-2 mb-4"
+          className="border border-gray-300 rounded-lg px-4 py-2 mb-4 text-black"
           value={search}
           onChangeText={(text) => {
             setSearch(text);
@@ -264,7 +264,7 @@ export default function UserListScreen() {
               onPress={() => openEditUserModal(user)}
               className="bg-gray-50 rounded-xl p-4 mb-2"
             >
-              <Text className="text-lg font-semibold">{user.name || "No name"}</Text>
+              <Text className="text-lg font-semibold text-black">{user.name || "No name"}</Text>
               <Text className="text-sm text-gray-700">{user.email}</Text>
               {user.phone && <Text className="text-sm text-gray-700">📞 {user.phone}</Text>}
               {user.role && (
@@ -282,7 +282,7 @@ export default function UserListScreen() {
         <Modal visible={true} transparent animationType="slide">
           <View className="absolute inset-0 bg-black/40 justify-center items-center z-50">
             <ScrollView className="bg-white w-[90%] p-4 rounded-xl shadow-lg max-h-[90%]">
-              <Text className="text-xl font-bold mb-4">
+              <Text className="text-xl font-bold mb-4 text-black">
                 {editingUser ? "Edit User" : "Add User"}
               </Text>
 
@@ -300,11 +300,12 @@ export default function UserListScreen() {
                     <TextInput
                       key={f.key}
                       placeholder={f.label}
+                      placeholderTextColor={"#9ca3af"}
                       value={(userForm as any)[f.key]}
                       onChangeText={(text) =>
                         setUserForm((prev) => ({ ...prev, [f.key]: text }))
                       }
-                      className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
+                      className="border border-gray-300 rounded-lg px-4 py-2 mb-3 text-black"
                     />
                   ))}
 
@@ -313,7 +314,7 @@ export default function UserListScreen() {
                     onPress={pickImage}
                     className="bg-gray-200 rounded-lg p-3 mb-3 items-center"
                   >
-                    <Text>Pick Avatar</Text>
+                    <Text className="text-black">Pick Avatar</Text>
                   </TouchableOpacity>
                   {pickedAvatar ? (
                     <Image
@@ -337,12 +338,13 @@ export default function UserListScreen() {
                     <TextInput
                       key={f.key}
                       placeholder={f.label}
+                      placeholderTextColor={"#9ca3af"}
                       secureTextEntry={f.type === "password"}
                       value={(userForm as any)[f.key]}
                       onChangeText={(text) =>
                         setUserForm((prev) => ({ ...prev, [f.key]: text }))
                       }
-                      className="border border-gray-300 rounded-lg px-4 py-2 mb-3"
+                      className="border border-gray-300 rounded-lg px-4 py-2 mb-3 text-black"
                     />
                   ))}
                 </>
@@ -354,7 +356,7 @@ export default function UserListScreen() {
                   onPress={() => setIsModalVisible(false)}
                   className="px-4 py-2 bg-gray-300 rounded-lg mr-2"
                 >
-                  <Text>Cancel</Text>
+                  <Text className="text-black">Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleSaveUser}

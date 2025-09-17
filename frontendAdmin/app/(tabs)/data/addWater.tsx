@@ -42,17 +42,17 @@ export default function AddWaterScreen() {
           <MaterialIcons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <View className="w-full items-center">
-            <Text className="text-xl font-bold ">Add Water Data</Text>
+            <Text className="text-xl font-bold text-black">Add Water Data</Text>
         </View>
       </View> 
 
       {/* Period */}
-      <Text className="text-base mb-2">Period (Date):</Text>
+      <Text className="text-base mb-2 text-black">Period (Date):</Text>
       <TouchableOpacity
         className="border border-gray-300 rounded-lg p-3 mb-4"
         onPress={() => setShowDatePicker(true)}
       >
-        <Text>{period.toLocaleDateString("vi-VN")}</Text>
+        <Text className="text-gray-800">{period.toLocaleDateString("vi-VN")}</Text>
       </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
@@ -67,11 +67,12 @@ export default function AddWaterScreen() {
       )}
 
       {/* Total */}
-      <Text className="text-base mb-2">Total (m³):</Text>
+      <Text className="text-base mb-2 text-black">Total (m³):</Text>
       <TextInput
-        className="border border-gray-300 rounded-lg p-3 mb-4"
+        className="border border-gray-300 rounded-lg p-3 mb-4 text-black"
         keyboardType="numeric"
         placeholder="Nhập số nước"
+        placeholderTextColor="#9ca3af"
         value={total}
         onChangeText={setTotal}
       />

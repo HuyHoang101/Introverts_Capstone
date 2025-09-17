@@ -279,7 +279,7 @@ const ReportForm = () => {
           className="p-4"
           ListEmptyComponent={
             <View className="flex-1 justify-center items-center py-10">
-              <Text>There is no Report set up</Text>
+              <Text className="text-gray-500">There is no Report set up</Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -303,9 +303,9 @@ const ReportForm = () => {
                 <Image source={{ uri: item.avatar || DEFAULT_AVATAR }} className="w-14 h-14 rounded-full mr-4" />
 
                 <View className="flex-1">
-                  <Text className="text-lg font-medium">{item.name}</Text>
+                  <Text className="text-lg font-medium text-black">{item.name}</Text>
                   <Text className="italic text-sm text-gray-500">{safeFormatDate(item.datetime)}</Text>
-                  <Text className="text-sm mt-1">{item.problem}</Text>
+                  <Text className="text-sm mt-1 text-black">{item.problem}</Text>
                 </View>
 
                 {/* Trạng thái */}
