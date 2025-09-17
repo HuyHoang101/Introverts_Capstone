@@ -88,7 +88,7 @@ export default function NotificationsScreen() {
             className={`px-3 py-1 rounded-full ${mode === 'unread' ? 'bg-indigo-600' : 'bg-slate-100'}`}
           >
             <Text className={`${mode === 'unread' ? 'text-white' : 'text-slate-700'}`}>
-              Chưa đọc{unreadCount ? ` (${unreadCount})` : ''}
+              Unread{unreadCount ? ` (${unreadCount})` : ''}
             </Text>
           </Pressable>
           <Pressable

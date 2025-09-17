@@ -77,6 +77,11 @@ const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
 const ReportForm = () => {
   const router = useRouter();
+  const goDetail = (report: any) => {
+    const payload = encodeURIComponent(JSON.stringify(report));
+    // ĐÚNG PATH theo cấu trúc của cậu:
+    router.push({ pathname: "/(tabs)/report/ReportDetail", params: { payload } });
+  };
 
   const [filterTitle, setFilterTitle] = useState<{ type: string; status: string }>({
     type: 'all', // mặc định là all
@@ -114,18 +119,25 @@ const ReportForm = () => {
   const handleFilter = useCallback(() => {
     let filteredReports = allReports ?? [];
 
-    // Lọc theo loại báo cáo
+    // Lọc theo loại (all, air, water, electric)
     if (filterTitle.type !== 'all') {
-      filteredReports = filteredReports.filter((r) => r.title === filterTitle.type);
+      const t = (filterTitle.type || '').toLowerCase();
+      filteredReports = filteredReports.filter(
+        (r) => (r.title || '').toLowerCase() === t
+      );
     }
 
-    // Lọc theo trạng thái
+    // Lọc theo trạng thái (solved, pending)
     if (filterTitle.status !== 'all') {
-      filteredReports = filteredReports.filter((r) => r.status === filterTitle.status);
+      const s = (filterTitle.status || '').toLowerCase();
+      filteredReports = filteredReports.filter(
+        (r) => (r.status || '').toLowerCase() === s
+      );
     }
 
     setReports(filteredReports);
   }, [allReports, filterTitle]);
+
 
   useEffect(() => {
     handleFilter();
@@ -219,25 +231,27 @@ const ReportForm = () => {
       {/* Header: Filter + Actions */}
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100 bg-white">
         {/* Filter theo loại báo cáo */}
-        <View className="flex-row">
-          {['all', 'water', 'electric', 'air'].map((type) => (
-            <TouchableOpacity key={type} onPress={() => handleFilterByType(type)} className="mr-4">
-              <Text className={filterTitle.type === type ? 'text-blue-600 font-bold' : 'text-gray-500'}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <View className='flex-col'>
+          <View className="flex-row">
+            {['all', 'water', 'electric', 'air'].map((type) => (
+              <TouchableOpacity key={type} onPress={() => handleFilterByType(type)} className="mr-4">
+                <Text className={filterTitle.type === type ? 'text-blue-600 font-bold' : 'text-gray-500'}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Filter theo trạng thái */}
-        <View className="flex-row mt-4">
-          {['solved', 'pending'].map((status) => (
-            <TouchableOpacity key={status} onPress={() => handleFilterByStatus(status)} className="mr-4">
-              <Text className={filterTitle.status === status ? 'text-blue-600 font-bold' : 'text-gray-500'}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {/* Filter theo trạng thái */}
+          <View className="flex-row mt-4">
+            {['solved', 'pending'].map((status) => (
+              <TouchableOpacity key={status} onPress={() => handleFilterByStatus(status)} className="mr-4">
+                <Text className={filterTitle.status === status ? 'text-blue-600 font-bold' : 'text-gray-500'}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Add + Delete mode */}
@@ -273,10 +287,7 @@ const ReportForm = () => {
               activeOpacity={0.9}
               onPress={() => {
                 if (deleteMode) return; // đang delete mode thì không navigate
-                router.push({
-                  pathname: '/report/ReportDetail',
-                  params: { report: JSON.stringify(item) },
-                });
+                goDetail(item);
               }}
             >
               <View className="flex-row bg-white rounded-sm shadow p-4 mb-4 items-center">

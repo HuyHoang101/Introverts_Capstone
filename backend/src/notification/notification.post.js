@@ -25,8 +25,8 @@ export async function broadcastPostNotifications(postId) {
     refId: post.id,
     // Dùng thời điểm tạo bài post để chống trùng nếu broadcast lại:
     scheduledFor: post.createdAt,
-    title: `Bài viết mới: ${post.title}`,
-    content: preview || 'Có báo cáo mới vừa được đăng.',
+    title: `New report: ${post.title}`,
+    content: preview || 'There is no description.',
   }));
 
   await prisma.notification.createMany({

@@ -9,7 +9,7 @@ export default function RootLayout() {
       />
       <Stack.Screen
         name="ReportDetail"
-        options={{ title: "Detail" }}
+        options={{ headerShown: false, title: "Detail" }}
       />
     </Stack>
   );

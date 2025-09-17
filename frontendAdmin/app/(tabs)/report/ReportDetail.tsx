@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -19,7 +19,6 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { getCommentsByPostId, addComment, uploadCommentImage } from '@/service/commentService';
 import { getUserInfo } from '@/service/authService';
 import { changePostStatus } from '@/service/postService';
-import { useRouter } from 'expo-router';
 
 type Comment = {
   id: string;
@@ -43,6 +42,30 @@ type User = {
   updatedAt: string;
 };
 
+type Report = {
+  id: string;
+  title?: string;
+  content?: string;
+  status?: string;
+  images?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type ReportLike = Report & {
+  // Các field cậu đang render trong UI:
+  avatar?: string;
+  name?: string;
+  datetime?: string;
+  published?: boolean;
+  problem?: string;
+  location?: string;
+  description?: string;
+  image?: string;
+  // đặt thêm title ở đây do UI có dùng `#${title}`
+  title?: string;
+};
+
 const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
 function formatDate(datetime?: string) {
@@ -52,17 +75,70 @@ function formatDate(datetime?: string) {
   return format(d, 'dd MMM yyyy, HH:mm');
 }
 
+// ---- helper: parse param an toàn (hỗ trợ payload | item | data) ----
+function firstString(x: unknown): string | undefined {
+  if (typeof x === 'string') return x;
+  if (Array.isArray(x) && x.length > 0 && typeof x[0] === 'string') return x[0] as string;
+  return undefined;
+}
+
+function tryParseJSON(s: string | undefined): any | null {
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+function parseParamObject(params: Record<string, any>): ReportLike | null {
+  // Thứ tự ưu tiên: payload (mới, encoded) -> item (cũ) -> data (cũ)
+  const rawPayload = firstString(params?.payload);
+  const rawItem = firstString(params?.item);
+  const rawData = firstString(params?.data);
+
+  // 1) Thử payload (có thể đã encodeURIComponent)
+  if (rawPayload) {
+    // thử decode -> parse; nếu fail thì parse thẳng
+    const candidates: string[] = [];
+    try { candidates.push(decodeURIComponent(rawPayload)); } catch { /* ignore */ }
+    candidates.push(rawPayload);
+    for (const c of candidates) {
+      const parsed = tryParseJSON(c);
+      if (parsed && typeof parsed === 'object') return parsed as ReportLike;
+    }
+  }
+
+  // 2) Thử item
+  if (rawItem) {
+    const parsed = tryParseJSON(rawItem);
+    if (parsed && typeof parsed === 'object') return parsed as ReportLike;
+  }
+
+  // 3) Thử data
+  if (rawData) {
+    const parsed = tryParseJSON(rawData);
+    if (parsed && typeof parsed === 'object') return parsed as ReportLike;
+  }
+
+  // 4) Fallback: nếu có id trong params thì ít nhất trả về object có id
+  const rid = firstString(params?.id) || firstString(params?.postId) || firstString(params?.reportId);
+  if (rid) return { id: rid } as ReportLike;
+
+  return null;
+}
+
 export default function ReportDetail() {
   const router = useRouter();
-  const { item } = useLocalSearchParams();
-  const reportData = item ? JSON.parse(item as string) : null;
+  const params = useLocalSearchParams();
+
+  // 👉 lấy reportData từ params (hỗ trợ payload/item/data và fallback id)
+  const reportData = useMemo<ReportLike | null>(() => parseParamObject(params as any), [params]);
 
   const [user, setUser] = useState<User | null>(null);
-
   const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState('');
   const [commentImage, setCommentImage] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -142,8 +218,7 @@ export default function ReportDetail() {
       return;
     }
     if (!input.trim() && !commentImage) {
-      // cho phép gửi ảnh không cần text, hoặc ngược lại
-      return;
+      return; // cho phép gửi ảnh không cần text, hoặc ngược lại
     }
 
     try {
@@ -162,7 +237,6 @@ export default function ReportDetail() {
       let finalImageUrl: string | undefined = undefined;
       if (commentImage) {
         const uploadRes = await uploadCommentImage(commentId, commentImage);
-        // tuỳ service: lấy imageUrl trả về (nếu có)
         finalImageUrl = uploadRes?.imageUrl ?? undefined;
       }
 
@@ -174,7 +248,7 @@ export default function ReportDetail() {
           avatar: user.avatar || DEFAULT_AVATAR,
           date: new Date().toISOString(),
           comment: input.trim(),
-          image: finalImageUrl ?? commentImage ?? undefined, // hiển thị ngay ảnh local nếu chưa có URL
+          image: finalImageUrl ?? commentImage ?? undefined,
         },
         ...prev,
       ]);
@@ -194,24 +268,22 @@ export default function ReportDetail() {
     if (!reportData?.id) return;
 
     // Hiển thị cửa sổ xác nhận trước khi thay đổi trạng thái
+    const nextIsSolved = !Boolean(reportData.status === 'Solved' ? true : false);
     Alert.alert(
       'Are you sure?',
-      `Are you sure you want to mark this report as ${reportData.published ? 'Pending' : 'Solved'}?`,
+      `Are you sure you want to mark this report as ${nextIsSolved ? 'Solved' : 'Pending'}?`,
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes',
           onPress: async () => {
             try {
               setLoading(true);
-              const updatedPost = await changePostStatus(reportData.id, !reportData.published);
+              const updatedPost = await changePostStatus(reportData.id, nextIsSolved);
               if (updatedPost) {
-                // Cập nhật trạng thái bài viết trong state
-                reportData.published = !reportData.published;
-                Alert.alert('Success', `Report marked as ${reportData.published ? 'Solved' : 'Pending'}`);
+                // Cập nhật trạng thái bài viết trong state (object từ params, nên chỉ patch tạm)
+                (reportData as any).published = nextIsSolved;
+                Alert.alert('Success', `Report marked as ${nextIsSolved ? 'Solved' : 'Pending'}`);
               } else {
                 throw new Error('Failed to update post status');
               }
@@ -250,10 +322,7 @@ export default function ReportDetail() {
             <View className="flex flex-col p-4 shadow-sm bg-white mb-4">
               <View className="flex flex-row items-center justify-between w-full mb-5 px-4">
                 {/* Nút Close */}
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                  className="p-2"
-                >
+                <TouchableOpacity onPress={() => router.back()} className="p-2">
                   <MaterialIcons name="close" size={24} color="black" />
                 </TouchableOpacity>
                 {/* Title */}
@@ -261,31 +330,38 @@ export default function ReportDetail() {
                 {/* Chỗ trống để giữ cân đối */}
                 <View className="w-10" />
               </View>
+
               <View className="flex flex-row justify-between items-start">
                 <View className="flex flex-row">
                   <Image source={{ uri: reportData?.avatar || DEFAULT_AVATAR }} className="w-14 h-14 rounded-full mr-4" />
                   <View className="flex flex-col">
-                    <Text className="text-3xl font-medium text-black">{reportData?.name}</Text>
-                    <Text className="text-gray-500 italic">{formatDate(reportData?.datetime)}</Text>
+                    <Text className="text-3xl font-medium text-black">
+                      {reportData?.name || reportData?.title || `Report ${reportData?.id ?? ''}`}
+                    </Text>
+                    <Text className="text-gray-500 italic">
+                      {formatDate(reportData?.datetime || reportData?.updatedAt || reportData?.createdAt)}
+                    </Text>
                   </View>
                 </View>
+
                 <Text className="text-sm text-gray-600">
-                  {reportData?.published ? (
+                  {reportData?.status === 'Solved' ? (
                     <TouchableOpacity onPress={handleChangePostStatus}>
-                      <Text className="text-blue-500">Pending</Text>
+                      <Text className="text-blue-500">Solved</Text>
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity onPress={handleChangePostStatus}>
-                      <Text className="text-blue-500">Solved</Text>
+                      <Text className="text-blue-500">Pending</Text>
                     </TouchableOpacity>
                   )}
                 </Text>
               </View>
 
-              <Text className="text-sm mt-4 text-black">{reportData?.problem}</Text>
-              <Text className="text-sm text-gray-600">{reportData?.location}</Text>
-              <Text>{reportData?.description}</Text>
-              <Text className="text-blue-500">{`#${reportData?.title}`}</Text>
+              {/* Nội dung */}
+              {reportData?.problem ? <Text className="text-sm mt-4 text-black">{reportData.problem}</Text> : null}
+              {reportData?.location ? <Text className="text-sm text-gray-600">{reportData.location}</Text> : null}
+              {reportData?.description ? <Text className="mt-1 text-black">{reportData.description}</Text> : null}
+              {reportData?.title ? <Text className="text-blue-500">{`#${reportData.title}`}</Text> : null}
               {!!reportData?.image && (
                 <Image source={{ uri: reportData.image }} className="w-full aspect-[16/9] mt-2" />
               )}
@@ -369,7 +445,7 @@ export default function ReportDetail() {
               )}
             </TouchableOpacity>
           </View>
- 
+
           {!!error && <Text className="text-red-500 mt-1 px-1">{error}</Text>}
         </View>
       </View>
