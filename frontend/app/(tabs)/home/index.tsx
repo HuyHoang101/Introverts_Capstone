@@ -1,13 +1,13 @@
+// frontend/app/(tabs)/home/index.tsx
 import { View, Text, ScrollView, Pressable, Image, TouchableOpacity, ImageBackground } from 'react-native';
-import React from 'react';
-import { Feather } from '@expo/vector-icons';
+import React, { useCallback, useState } from 'react';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import {useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+
 import { getUserInfo } from '@/service/authService';
 import { getAllPosts } from '@/service/postService';
 import { getAllLikes } from '@/service/likeService';
+import { getAllRooms } from '@/service/roomService';
 import { formatVietnamTime } from '@/utils/time';
 import NotificationBell from '@/component/NotificationBell';
 
@@ -36,55 +36,48 @@ type Like = {
 };
 
 interface User {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string; // Optional avatar URL
-    introduction?: string; // Optional introduction
-    phone: string;
-    address: string;
-    birthDate: string;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  introduction?: string;
+  phone: string;
+  address: string;
+  birthDate: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
 export default function HomeScreen() {
-
   const [posts, setPosts] = useState<Report[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [rooms, setRooms] = useState<Array<{ id: string; name: string; status?: string }>>([]);
 
   useFocusEffect(
     useCallback(() => {
-        const fetchData = async () => {
+      const fetchData = async () => {
+        // User
         const data = await getUserInfo();
-
         let updated = data;
-        if (data?.avatar === "https://example.com/default-avatar.png") {
-            updated = {
-            ...data,
-            avatar: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-            };
+        if (data?.avatar === 'https://example.com/default-avatar.png') {
+          updated = { ...data, avatar: DEFAULT_AVATAR };
         }
         setUser(updated);
 
+        // Posts của user
         if (updated?.id) {
-            // 🔥 Lấy tất cả posts
-            const allPosts = await getAllPosts();
-            // 🔥 Lấy tất cả likes
-            const allLikes = await getAllLikes();
-
-            // 🔥 Filter post theo authorId và map về type Report
-            const userPosts: Report[] = allPosts
+          const [allPosts, allLikes] = await Promise.all([getAllPosts(), getAllLikes()]);
+          const userPosts: Report[] = allPosts
             .filter((p: any) => p.authorId === updated.id)
             .map((p: any) => {
-                const likeCount = allLikes.filter((l: any) => l.postId === p.id).length;
-                return {
+              const likeCount = allLikes.filter((l: Like) => l.postId === p.id).length;
+              return {
                 id: p.id,
                 name: updated.name,
                 avatar: updated.avatar,
-                status: p.published ? "Solved" : "Pending",
+                status: p.published ? 'Solved' : 'Pending',
                 title: p.title,
                 location: p.location,
                 datetime: p.createdAt,
@@ -94,79 +87,91 @@ export default function HomeScreen() {
                 createdAt: p.createdAt,
                 updatedAt: p.updatedAt,
                 likeCount,
-                } as Report;
-            }).slice(0, 3); // Giới hạn chỉ lấy 3 bài gần nhất
-
-            setPosts(userPosts);
+              } as Report;
+            })
+            .slice(0, 3);
+          setPosts(userPosts);
         }
-        };
 
-        fetchData();
+        // Rooms list
+        try {
+          const dataRooms = await getAllRooms();
+          const list = Array.isArray(dataRooms) ? dataRooms : dataRooms?.rooms || [];
+          const normalized = list.map((r: any) => ({
+            id: String(r.id),
+            name: r.name,
+            status: r.status,
+          }));
+          setRooms(normalized);
+        } catch {
+          setRooms([]);
+        }
+      };
+
+      fetchData();
     }, [])
   );
 
+  const onOpenRoom = (room: { id: string; name: string }) => {
+    router.push({
+      pathname: '/(tabs)/home/bookingLab',
+      params: { roomId: room.id, roomName: room.name },
+    });
+  };
 
   return (
-    <>
     <ImageBackground
       source={require('../../../assets/images/bg_main.png')}
-      className="flex-1 min-h-screen"
+      style={{ flex: 1 }}
       resizeMode="stretch"
     >
-    <ScrollView
-      className="flex-1 mt-10"
-      contentContainerStyle={{ padding: 16 }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View className="flex-row justify-between items-center mb-14">
-        <View className='flex flex-row items-center'>
-          <Image source={require('../../../assets/images/renewable-energy.png')} style={{ width: 48, height: 48 }} className="mr-2" />
-          <Text className='font-extrabold text-5xl text-white'>GreenSync</Text>
+      {/* Chỉ 1 ScrollView ngoài cùng, không nested */}
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingTop: 40, paddingBottom: 64 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View className="flex-row justify-between items-center mb-14">
+          <View className="flex flex-row items-center">
+            <Image
+              source={require('../../../assets/images/renewable-energy.png')}
+              style={{ width: 48, height: 48 }}
+              className="mr-2"
+            />
+            <Text className="font-extrabold text-5xl text-white">GreenSync</Text>
+          </View>
+          <NotificationBell />
         </View>
-        
-        <NotificationBell />
-      </View>
 
-      {/* Daily Tips & Alert */}
-      <View className="flex-row justify-between mb-4">
-        <View className="flex-1 bg-green-200 rounded-xl p-3 shadow mr-1">
-          <Text className="font-bold text-green-800 mb-1">Daily Tips</Text>
-          <Text className="text-gray-700">Turn off lights - saved 5% energy</Text>
+        {/* Daily Tips & Alert */}
+        <View className="flex-row justify-between mb-4">
+          <View className="flex-1 bg-green-200 rounded-xl p-3 shadow mr-1">
+            <Text className="font-bold text-green-800 mb-1">Daily Tips</Text>
+            <Text className="text-gray-700">Turn off lights - saved 5% energy</Text>
+          </View>
+          <View className="flex-1 bg-red-200 rounded-xl p-3 shadow ml-1">
+            <Text className="font-bold text-red-700 mb-1">Alert</Text>
+            <Text className="text-gray-800">⚠️ High water usage detected in Building 2!!!</Text>
+          </View>
         </View>
-        <View className="flex-1 bg-red-200 rounded-xl p-3 shadow ml-1">
-          <Text className="font-bold text-red-700 mb-1">Alert</Text>
-          <Text className="text-gray-800">⚠️ High water usage detected in Building 2!!!</Text>
-        </View>
-      </View>
 
-      {/* Personal Records */}
-      <View className="bg-white rounded-xl p-4 shadow mb-4 h-80">
-        <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-lg font-bold text-black">Personal records</Text>
-          <Pressable>
-            <Text className="text-blue-600 font-medium">Read more →</Text>
-          </Pressable>
-        </View>
-        {/* List: chỉ avatar + name + datetime + problem */}
-        <View className="flex-1">
-          <ScrollView
-            className="p-4"
-            contentContainerStyle={{ paddingBottom: 40 }}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-          >
+        {/* Personal Records (không ScrollView con) */}
+        <View className="bg-white rounded-xl p-4 shadow mb-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-lg font-bold text-black">Personal records</Text>
+            <Pressable>
+              <Text className="text-blue-600 font-medium">Read more →</Text>
+            </Pressable>
+          </View>
+
+          <View className="p-4">
             {posts && posts.length > 0 ? (
               posts.map((item) => (
-                <View
-                  key={item.id}
-                  className="flex-row bg-white rounded-sm shadow p-4 mb-4 items-center"
-                >
+                <View key={item.id} className="flex-row bg-white rounded-sm shadow p-4 mb-4 items-center">
                   <Image
                     source={{ uri: item.avatar || DEFAULT_AVATAR }}
                     className="w-14 h-14 rounded-full mr-4"
                   />
-
                   <View className="flex-1">
                     <Text className="text-lg font-medium">{item.name}</Text>
                     <Text className="italic text-sm text-gray-500">
@@ -177,31 +182,35 @@ export default function HomeScreen() {
                 </View>
               ))
             ) : (
-              <View className="flex-1 justify-center items-center py-10">
+              <View className="justify-center items-center py-10">
                 <Text>There is no Report set up</Text>
               </View>
             )}
-          </ScrollView>
+          </View>
         </View>
-      </View>
 
-      {/* Booking Room */}
-      <View className="bg-gray-200 rounded-xl p-4 shadow">
-        <View className='flex-row items-center justify-between mb-2'>
-          <Text className="text-lg font-bold text-black">BOOKING ROOM</Text>
-          <TouchableOpacity
-            onPress={() => {router.push({ pathname: './home/bookingLab' })}}
-          >
-            <Text className='font-semibold text-gray-700'> Read more →</Text>
-          </TouchableOpacity>
+        {/* ROOMS list (thay cho box Booking Room cũ) */}
+        <View className="bg-gray-200 rounded-xl p-4 shadow">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-lg font-bold text-black">ROOMS</Text>
+          </View>
+
+          {rooms.length === 0 ? (
+            <Text className="text-gray-700">No rooms available.</Text>
+          ) : (
+            rooms.map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                onPress={() => onOpenRoom(r)}
+                className="bg-white rounded-xl p-3 shadow-sm w-full justify-start mb-2"
+              >
+                <Text className="text-green-800 font-semibold">Room {r.name} is available now</Text>
+                {!!r.status && <Text className="text-xs text-gray-500 mt-1">{r.status}</Text>}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
-        <View className="bg-white rounded-xl p-3 shadow-sm w-full justify-start">
-          <Text className="text-green-800 font-semibold h-28">ROOM 2.4.. is now available</Text>
-          <Text ></Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
     </ImageBackground>
-    </>
   );
 }

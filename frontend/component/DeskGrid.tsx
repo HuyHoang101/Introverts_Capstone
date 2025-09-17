@@ -6,15 +6,19 @@ import { getAllBookings } from '@/service/bookingTableService';
 import { getAllTables } from '@/service/tableService';
 
 type Props = {
+  roomId?: string;                // 👈 NEW: filter theo room
   selectedDeskId: string | null;
   onSelect: (deskId: string) => void;
   dateYMD: string;
   slotId: SlotId;
   refreshKey?: number;
-  userId: string; // 👈 thêm userId của bạn
+  userId: string;
 };
 
+type TableRow = { id: string; name?: string; roomId?: string };
+
 export default function DeskGrid({
+  roomId,
   selectedDeskId,
   onSelect,
   dateYMD,
@@ -23,31 +27,38 @@ export default function DeskGrid({
   userId
 }: Props) {
   const [bookingsForDate, setBookingsForDate] = useState<any[]>([]);
-  const [tables, setTables] = useState<any[]>([]);
+  const [tables, setTables] = useState<TableRow[]>([]);
 
   const now = new Date();
   const todayYMD = toYMD(now);
   const { start, end } = slotDateRange(dateYMD, slotId);
   const isCurrentSlotNow = todayYMD === dateYMD && now >= start && now <= end;
 
-  // fetch danh sách bàn
+  // fetch danh sách bàn (lọc theo roomId)
   useEffect(() => {
     (async () => {
       try {
         const allTables = await getAllTables();
-        const sortedTables = (allTables ?? []).sort(
-          (a: { name: string }, b: { name: string }) => {
-            const numA = parseInt(a.name.replace(/\D/g, ''), 10) || 0;
-            const numB = parseInt(b.name.replace(/\D/g, ''), 10) || 0;
-            return numA - numB;
-          }
-        );
-        setTables(sortedTables);
+        const mapped: TableRow[] = (allTables ?? []).map((r: any) => ({
+          id: String(r.id ?? r.tableId),
+          name: r.name,
+          roomId: r.roomId ? String(r.roomId) : undefined,
+        }));
+        const filtered = roomId ? mapped.filter((t) => t.roomId === String(roomId)) : mapped;
+
+        // sort theo số trong name (Table 1, Table 2, ...)
+        const sorted = filtered.sort((a, b) => {
+          const numA = parseInt(String(a.name || '').replace(/\D/g, ''), 10) || 0;
+          const numB = parseInt(String(b.name || '').replace(/\D/g, ''), 10) || 0;
+          return numA - numB;
+        });
+
+        setTables(sorted);
       } catch (e) {
         setTables([]);
       }
     })();
-  }, [refreshKey]);
+  }, [roomId, refreshKey]);
 
   // fetch bookings
   useEffect(() => {
@@ -71,61 +82,50 @@ export default function DeskGrid({
         setBookingsForDate([]);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [dateYMD, slotId, refreshKey]);
 
-  // ✅ fix logic: phân biệt booking của bạn hay người khác
+  // phân loại trạng thái cho từng bàn
   const statusOfDesk = (deskId: string): 'free' | 'mine_now' | 'mine_future' | 'other' => {
-  const b = bookingsForDate.find(x => String(x.tableId) === String(deskId));
-  if (!b) return 'free';
+    const b = bookingsForDate.find((x) => String(x.tableId) === String(deskId));
+    if (!b) return 'free';
 
-  if (b.userId === userId) {
-    if (isCurrentSlotNow) return 'mine_now';   // mình, slot hiện tại
-    return 'mine_future';                      // mình, slot tương lai
-  } else {
-    return 'other';                            // người khác
-  }
+    if (b.userId === userId) {
+      if (isCurrentSlotNow) return 'mine_now';
+      return 'mine_future';
+    } else {
+      return 'other';
+    }
+  };
 
-};
-
-
-  const cellStyle = (
-  state: 'free' | 'mine_now' | 'mine_future' | 'other',
-  selected: boolean
-) => ({
-  backgroundColor:
-    state === 'mine_now'
-      ? '#fed7aa' // cam: bạn, slot hiện tại
-      : state === 'mine_future'
-      ? '#fde68a' // vàng nhạt: bạn, slot tương lai
-      : state === 'other'
-      ? '#fecaca' // đỏ nhạt: người khác
-      : '#c8f7c5', // xanh: trống
-  borderWidth: selected ? 2 : 0,
-  borderColor: selected ? '#2563eb' : 'transparent',
-  width: '45%' as const,
-  height: 80,
-  borderRadius: 12,
-  justifyContent: 'center' as const,
-  alignItems: 'center' as const,
-  marginBottom: 12
-});
+  const cellStyle = (state: 'free' | 'mine_now' | 'mine_future' | 'other', selected: boolean) => ({
+    backgroundColor:
+      state === 'mine_now'
+        ? '#fed7aa' // cam: bạn, slot hiện tại
+        : state === 'mine_future'
+        ? '#fde68a' // vàng nhạt: bạn, slot tương lai
+        : state === 'other'
+        ? '#fecaca' // đỏ nhạt: người khác
+        : '#c8f7c5', // xanh: trống
+    borderWidth: selected ? 2 : 0,
+    borderColor: selected ? '#2563eb' : 'transparent',
+    width: '45%' as const,
+    height: 80,
+    borderRadius: 12,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginBottom: 12
+  });
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.grid}>
-        {tables.map(t => {
+        {tables.map((t) => {
           const selected = t.id === selectedDeskId;
           const state = statusOfDesk(t.id);
           return (
-            <Pressable
-              key={t.id}
-              onPress={() => onSelect(t.id)}
-              style={cellStyle(state, selected)}
-            >
-              <Text style={styles.cellText}>{t.name}</Text>
+            <Pressable key={t.id} onPress={() => onSelect(t.id)} style={cellStyle(state, selected)}>
+              <Text style={styles.cellText}>{t.name ?? `Table ${t.id}`}</Text>
             </Pressable>
           );
         })}

@@ -5,6 +5,7 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ title: "Sustainablity Data" }} />
       <Stack.Screen name="AirDetail" options={{ headerShown: true, title: "Pollution Detail" }} />
+      <Stack.Screen name="[roomId]" options={{ headerShown: true, title: "Room Detail"}}/>
     </Stack>
   );
 }
