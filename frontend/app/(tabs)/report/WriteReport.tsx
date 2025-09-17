@@ -62,7 +62,7 @@ useEffect(() => {
 
   const handleSubmit = async () => {
     if (!problem.trim() || !location.trim() || !description.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng điền đủ các trường bắt buộc');
+      Alert.alert('Error', 'Please, fill all repuired fields');
       return;
     }
 
@@ -82,13 +82,13 @@ useEffect(() => {
 
       const { report, suggestion } = await addReport(postPayload);
       if (!report?.id) {
-        throw new Error('Server không trả về report.id');
+        throw new Error('Server does not return report.id');
       }
       addBotMessage(suggestion || "Disconnected from AI Chat Bot.");
       if (image) await uploadPostImage(report.id, image);
 
 
-      Alert.alert('Thành công', 'Report submitted successfully!');
+      Alert.alert('Success', 'Report submitted successfully!');
       // reset form
       setProblem('');
       setLocation('');
@@ -97,7 +97,7 @@ useEffect(() => {
       setSelected('electric');
     } catch (err) {
       console.error('Submit report error:', err);
-      Alert.alert('Lỗi', (err as Error).message || 'Gửi báo cáo thất bại');
+      Alert.alert('Error', (err as Error).message || 'Failed to send report.');
     } finally {
       setLoading(false);
     }

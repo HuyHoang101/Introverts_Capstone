@@ -11,6 +11,10 @@ export default function RootLayout() {
         name="ReportDetail"
         options={{ headerShown: false, title: "Detail" }}
       />
+      <Stack.Screen
+        name="writeReport"
+        options={{ headerShown: false, title: "Create" }}
+      />
     </Stack>
   );
 }
