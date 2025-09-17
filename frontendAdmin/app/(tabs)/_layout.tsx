@@ -3,6 +3,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import * as NavigationBar from "expo-navigation-bar";
+import '@/global.css';
 
 export default function RootLayout() {
   useEffect(() => {
