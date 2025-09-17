@@ -6,5 +6,6 @@ export default function AccountLayout() {
     <Stack.Screen name="index" options={{ headerShown: false }} />
     <Stack.Screen name="Profile" options={{ title: 'Profile' }} />
     <Stack.Screen name="MyReportDetail" options={{ title: 'Report Detail' }} />
+    <Stack.Screen name="[userId]" options={{ title: 'Conversation' }} />
   </Stack>;
 }
