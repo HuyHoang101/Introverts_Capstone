@@ -52,7 +52,7 @@ export default function ElectricList() {
                 <View className="w-10" />
             </View>
             <View className="flex-row justify-between items-center p-4 border-b border-gray-800 bg-white pr-9 mx-4 mt-4 rounded-s-xl">
-                <Text className="text-lg font-bold">Total</Text>
+                <Text className="text-lg font-bold text-black">Total</Text>
                 <Text className="text-gray-600">Unit</Text>
                 <Text className="text-gray-600">Period</Text>
             </View> 
@@ -76,7 +76,7 @@ export default function ElectricList() {
                                     })
                                 }
                             >
-                                <Text className="text-lg font-bold">{formatNumber(item.total)}</Text>
+                                <Text className="text-lg font-bold text-black">{formatNumber(item.total)}</Text>
                                 <Text className="text-gray-600">kWh</Text>
                                 <Text className="text-gray-600">{formatMonthYear(item.period)}</Text>
                             </TouchableOpacity>
