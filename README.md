@@ -11,5 +11,5 @@ https://expo.dev/accounts/kubobaby0307/projects/Greensync-Admin/builds/0c599818-
 1. Download code from github.
 2. Open terminal and cd to frontend.
 3. Enter:
-        npm install
-        npx expo start -c
+- npm install
+- npx expo start -c
